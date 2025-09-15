@@ -1,1 +1,1 @@
-
+Aplicación web de escritorio para vender, facturar y controlar inventario con integración oficial a ARCA (ex-AFIP). Emite comprobantes electrónicos (A/B/C y Notas de Crédito), obtiene CAE en línea, genera el PDF con QR fiscal y descuenta stock automáticamente desde una pantalla de venta rápida (TPV). Incluye ABM de productos/categorías, clientes y proveedores, alertas de stock bajo y reportes mensuales (por cliente y totales). Un único punto de venta, pensado para uso simple y seguro.
