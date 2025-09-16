@@ -75,19 +75,41 @@ export const update = async (id: InvoiceId, patch: Partial<Invoice>): Promise<In
     return Promise.resolve(updatedInvoice);
 };
 
+export const issue = async (finalDraftData: Invoice): Promise<Invoice> => {
+    const invoiceToIssue = findInvoice(finalDraftData.id); // verify it exists
+    if (invoiceToIssue.status !== 'BORRADOR') {
+        throw new Error('Only draft invoices can be issued.');
+    }
+
+    const issuedInvoice: Invoice = {
+        ...finalDraftData,
+        id: invoiceToIssue.id, // Keep original ID
+        status: 'EMITIDA',
+        number: incrementInvoiceNumber(finalDraftData.pos),
+        cae: Date.now().toString() + Math.floor(Math.random() * 100),
+        caeDue: (() => {
+            const d = new Date();
+            d.setDate(d.getDate() + 7);
+            return d.toISOString();
+        })(),
+        updatedAt: new Date().toISOString(),
+        createdAt: invoiceToIssue.createdAt, // Keep original creation date
+    };
+
+    invoices = invoices.map(inv => (inv.id === issuedInvoice.id ? issuedInvoice : inv));
+    persist();
+    return Promise.resolve(issuedInvoice);
+};
+
+
 export const setStatus = async (id: InvoiceId, status: InvoiceStatus): Promise<Invoice> => {
     const invoice = findInvoice(id);
-    let patch: Partial<Invoice> = { status };
-
-    if (status === 'EMITIDA' && invoice.status === 'BORRADOR') {
-        patch.number = incrementInvoiceNumber(invoice.pos);
-        patch.cae = Date.now().toString() + Math.floor(Math.random() * 100); // Simulated CAE
-        const dueDate = new Date();
-        dueDate.setDate(dueDate.getDate() + 7);
-        patch.caeDue = dueDate.toISOString();
+    
+    if (status === 'EMITIDA') {
+        throw new Error("Internal error: Use the `issue` function to set status to EMITIDA.");
     }
     
-    const updatedInvoice = { ...invoice, ...patch, updatedAt: new Date().toISOString() };
+    const updatedInvoice = { ...invoice, status, updatedAt: new Date().toISOString() };
     invoices = invoices.map(inv => inv.id === id ? updatedInvoice : inv);
     persist();
     return Promise.resolve(updatedInvoice);

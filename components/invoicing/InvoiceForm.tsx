@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInvoices } from '../../hooks/useInvoices';
 import { Invoice, InvoiceItem, TaxRate, PaymentMethod, InvoiceType, Concept } from '../../types/invoice';
 import { Client } from '../../types/client';
@@ -8,18 +8,22 @@ import { ProductPicker } from './ProductPicker';
 import { InvoiceItemsTable } from './InvoiceItemsTable';
 import { formatARS } from '../../utils/format';
 import { Modal } from '../shared/Modal';
+import { sumTotals } from '../../utils/tax';
 
 interface InvoiceFormProps {
   invoiceId: string;
   onClose: () => void;
+  actions: ReturnType<typeof useInvoices>;
 }
 
-export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) => {
-  const { getById, updateInvoice, issueInvoice, cancelInvoice, removeDraft } = useInvoices();
+export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, actions }) => {
+  const { getById, updateInvoice, issueInvoice, cancelInvoice, removeDraft } = actions;
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isClientPickerOpen, setClientPickerOpen] = useState(false);
   const [isProductPickerOpen, setProductPickerOpen] = useState(false);
+  const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isCancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -59,7 +63,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
       lineTotalARS: product.priceARS,
     };
     const updatedItems = [...invoice.items, newItem];
-    setInvoice({ ...invoice, items: updatedItems });
+    const newTotals = sumTotals(updatedItems);
+    setInvoice({ ...invoice, items: updatedItems, totals: newTotals });
     setProductPickerOpen(false);
   };
   
@@ -67,13 +72,15 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
       if (!invoice) return;
       const newItems = [...invoice.items];
       newItems[index] = updatedItem;
-      setInvoice({ ...invoice, items: newItems });
+      const newTotals = sumTotals(newItems);
+      setInvoice({ ...invoice, items: newItems, totals: newTotals });
   };
   
   const handleItemRemove = (index: number) => {
     if (!invoice) return;
     const newItems = invoice.items.filter((_, i) => i !== index);
-    setInvoice({ ...invoice, items: newItems });
+    const newTotals = sumTotals(newItems);
+    setInvoice({ ...invoice, items: newItems, totals: newTotals });
   };
 
   const handleSaveDraft = async () => {
@@ -91,39 +98,34 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
     if (!invoice) return;
     setError(null);
     try {
-        await issueInvoice(invoice.id);
+        await issueInvoice(invoice);
         onClose();
     } catch (e) {
         setError(e instanceof Error ? e.message : 'Error al emitir');
     }
   };
 
-  const handleCancel = async () => {
+  const handleConfirmCancel = async () => {
     if (!invoice || invoice.status !== 'EMITIDA') return;
-     if (window.confirm('¿Estás seguro de que quieres anular esta factura?')) {
-        try {
-            await cancelInvoice(invoice.id);
-            onClose();
-        } catch (e)
-{
-            setError(e instanceof Error ? e.message : 'Error al anular');
-        }
+    try {
+        await cancelInvoice(invoice.id);
+        setCancelConfirmOpen(false);
+        onClose();
+    } catch (e) {
+        setError(e instanceof Error ? e.message : 'Error al anular');
     }
   };
 
-  const handleDeleteDraft = async () => {
+  const handleConfirmDelete = async () => {
     if (!invoice || invoice.status !== 'BORRADOR') return;
-    if (window.confirm('¿Estás seguro de que quieres eliminar este borrador?')) {
-        try {
-            await removeDraft(invoice.id);
-            onClose();
-        } catch (e) {
-            setError(e instanceof Error ? e.message : 'Error al eliminar');
-        }
+    try {
+        await removeDraft(invoice.id);
+        setDeleteConfirmOpen(false);
+        onClose();
+    } catch (e) {
+        setError(e instanceof Error ? e.message : 'Error al eliminar');
     }
   };
-
-  const totals = useMemo(() => invoice?.totals, [invoice]);
 
   if (!invoice) return <div>Cargando factura...</div>;
 
@@ -194,15 +196,15 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
         <div className="w-full max-w-sm bg-slate-50 p-4 rounded-lg">
             <div className="flex justify-between text-sm mb-2">
                 <span className="text-slate-600">Subtotal (Neto)</span>
-                <span className="font-medium text-slate-800">{formatARS(totals?.netARS || 0)}</span>
+                <span className="font-medium text-slate-800">{formatARS(invoice.totals?.netARS || 0)}</span>
             </div>
             <div className="flex justify-between text-sm mb-3">
                 <span className="text-slate-600">IVA</span>
-                <span className="font-medium text-slate-800">{formatARS(totals?.ivaARS || 0)}</span>
+                <span className="font-medium text-slate-800">{formatARS(invoice.totals?.ivaARS || 0)}</span>
             </div>
             <div className="flex justify-between text-lg font-bold text-slate-900 border-t border-slate-200 pt-3">
                 <span>Total</span>
-                <span>{formatARS(totals?.totalARS || 0)}</span>
+                <span>{formatARS(invoice.totals?.totalARS || 0)}</span>
             </div>
         </div>
       </div>
@@ -213,10 +215,10 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
       <div className="flex flex-wrap justify-between items-center gap-4 border-t border-slate-200 pt-6">
         <div>
             {invoice.status === 'BORRADOR' && (
-                <button onClick={handleDeleteDraft} className="text-sm font-semibold text-red-600 hover:underline">Eliminar Borrador</button>
+                <button onClick={() => setDeleteConfirmOpen(true)} className="text-sm font-semibold text-red-600 hover:underline">Eliminar Borrador</button>
             )}
              {invoice.status === 'EMITIDA' && (
-                <button onClick={handleCancel} className="text-sm font-semibold text-red-600 hover:underline">Anular Factura</button>
+                <button onClick={() => setCancelConfirmOpen(true)} className="text-sm font-semibold text-red-600 hover:underline">Anular Factura</button>
             )}
         </div>
         <div className="flex gap-4">
@@ -235,6 +237,58 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose }) 
           )}
         </div>
       </div>
+
+      <Modal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        title="Confirmar Eliminación"
+      >
+        <div>
+            <p className="text-slate-600 mb-6">
+                ¿Estás seguro de que quieres eliminar este borrador? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+                <button
+                    onClick={() => setDeleteConfirmOpen(false)}
+                    className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                >
+                    Cancelar
+                </button>
+                <button
+                    onClick={handleConfirmDelete}
+                    className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                >
+                    Eliminar
+                </button>
+            </div>
+        </div>
+      </Modal>
+      
+      <Modal
+        isOpen={isCancelConfirmOpen}
+        onClose={() => setCancelConfirmOpen(false)}
+        title="Confirmar Anulación"
+      >
+        <div>
+            <p className="text-slate-600 mb-6">
+                ¿Estás seguro de que quieres anular esta factura? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+                <button
+                    onClick={() => setCancelConfirmOpen(false)}
+                    className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                >
+                    Cancelar
+                </button>
+                <button
+                    onClick={handleConfirmCancel}
+                    className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                >
+                    Anular Factura
+                </button>
+            </div>
+        </div>
+      </Modal>
 
       {isClientPickerOpen && (
         <Modal isOpen={isClientPickerOpen} onClose={() => setClientPickerOpen(false)} title="Seleccionar Cliente">

@@ -8,90 +8,98 @@ interface IssuePreviewProps {
 
 export const IssuePreview: React.FC<IssuePreviewProps> = ({ invoice }) => {
   return (
-    <div className="invoice-preview-container p-4 sm:p-8 bg-white text-xs">
-      {/* Header */}
-      <header className="flex justify-between items-start pb-4 border-b">
-        <div>
-          <h1 className="text-2xl font-bold">LOGO EMPRESA</h1>
-          <p>Razón Social: Tu Empresa S.A.</p>
-          <p>Domicilio: Calle Falsa 123, CABA</p>
-          <p>Condición IVA: Responsable Inscripto</p>
-        </div>
-        <div className="text-center">
-          <h2 className="text-3xl font-bold">FACTURA</h2>
-          <p className="font-mono text-sm">
-            Punto de Venta: {invoice.pos} Nº: {invoice.number}
-          </p>
-          <p>Fecha de Emisión: {new Date(invoice.createdAt).toLocaleDateString()}</p>
-          <div className="mt-2 text-3xl font-bold inline-block border-2 border-black px-2 py-1">
-             {invoice.type}
+    <div className="p-8 bg-white text-gray-800 font-sans text-sm">
+      <div className="border-2 border-gray-200 p-8 rounded-lg">
+        {/* Header Section */}
+        <header className="flex justify-between items-start pb-6 border-b border-gray-200">
+          {/* Company Info */}
+          <div className="text-xs">
+            <h2 className="text-xl font-bold mb-1">LOGO EMPRESA</h2>
+            <p><strong>Razón Social:</strong> Tu Empresa S.A.</p>
+            <p><strong>Domicilio:</strong> Calle Falsa 123, CABA</p>
+            <p><strong>Condición IVA:</strong> Responsable Inscripto</p>
           </div>
-        </div>
-      </header>
 
-      {/* Client Info */}
-      <section className="mt-4 pb-4 border-b">
-        <p><strong>Cliente:</strong> {invoice.clientName}</p>
-        <p><strong>{invoice.clientDocType}:</strong> {invoice.clientDocNumber}</p>
-        <p><strong>Condición frente al IVA:</strong> Consumidor Final</p>
-      </section>
-
-      {/* Items Table */}
-      <section className="mt-4">
-        <table className="w-full">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="p-1 text-left">Código</th>
-              <th className="p-1 text-left">Producto/Servicio</th>
-              <th className="p-1 text-center">Cantidad</th>
-              <th className="p-1 text-right">P. Unitario</th>
-              <th className="p-1 text-center">% IVA</th>
-              <th className="p-1 text-right">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoice.items.map((item, index) => (
-              <tr key={index} className="border-b">
-                <td className="p-1">{item.sku}</td>
-                <td className="p-1">{item.name}</td>
-                <td className="p-1 text-center">{item.qty}</td>
-                <td className="p-1 text-right">{formatARS(item.unitPriceARS)}</td>
-                <td className="p-1 text-center">{item.taxRate}%</td>
-                <td className="p-1 text-right">{formatARS(item.lineTotalARS)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-
-      {/* Totals & CAE */}
-      <footer className="mt-4 flex justify-end">
-        <div className="w-full max-w-xs">
-          <div className="flex justify-between p-1">
-            <span>Subtotal Neto:</span>
-            <span className="font-medium">{formatARS(invoice.totals.netARS)}</span>
-          </div>
-          <div className="flex justify-between p-1">
-            <span>IVA:</span>
-            <span className="font-medium">{formatARS(invoice.totals.ivaARS)}</span>
-          </div>
-          <div className="flex justify-between p-2 mt-1 bg-slate-100 font-bold text-sm">
-            <span>TOTAL:</span>
-            <span>{formatARS(invoice.totals.totalARS)}</span>
-          </div>
-        </div>
-      </footer>
-      
-      {invoice.status === 'EMITIDA' && (
-          <div className="mt-8 flex justify-between items-center text-xs">
-            {/* Placeholder for QR Code */}
-            <div className="w-24 h-24 border flex items-center justify-center text-slate-400">QR</div>
-            <div>
-                <p className="font-bold">CAE Nº: {invoice.cae}</p>
-                <p><strong>Fecha Vto. de CAE:</strong> {invoice.caeDue ? new Date(invoice.caeDue).toLocaleDateString() : 'N/A'}</p>
+          {/* Invoice Info */}
+          <div className="text-right">
+            <h1 className="text-4xl font-bold mb-2">FACTURA</h1>
+            <div className="text-xs font-mono">
+              <p>Punto de Venta: {invoice.pos} Nº: {invoice.number}</p>
+              <p>Fecha de Emisión: {new Date(invoice.createdAt).toLocaleDateString('es-AR')}</p>
+            </div>
+            <div className="mt-4 text-4xl font-bold inline-block border-2 border-black px-4 py-2">
+              {invoice.type}
             </div>
           </div>
-      )}
+        </header>
+
+        {/* Client Info Section */}
+        <section className="mt-6 pb-6 border-b border-gray-200 text-xs">
+          <p><strong>Cliente:</strong> {invoice.clientName}</p>
+          <p><strong>{invoice.clientDocType}:</strong> {invoice.clientDocNumber}</p>
+          <p><strong>Condición frente al IVA:</strong> Consumidor Final</p>
+        </section>
+
+        {/* Items Table */}
+        <section className="mt-6">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-100 text-slate-600 uppercase text-xs">
+                <th className="p-3">Código</th>
+                <th className="p-3">Producto/Servicio</th>
+                <th className="p-3 text-center">Cantidad</th>
+                <th className="p-3 text-right">P. Unitario</th>
+                <th className="p-3 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {invoice.items.map((item, index) => (
+                <tr key={index} className="border-b border-gray-100">
+                  <td className="p-3 font-mono text-xs text-slate-500">{item.sku}</td>
+                  <td className="p-3 font-medium text-slate-800">{item.name}</td>
+                  <td className="p-3 text-center text-slate-700">{item.qty}</td>
+                  <td className="p-3 text-right text-slate-700">{formatARS(item.unitPriceARS)}</td>
+                  <td className="p-3 text-right font-semibold text-slate-900">{formatARS(item.lineTotalARS)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+
+        {/* Totals Section */}
+        <section className="mt-6 flex justify-end">
+          <div className="w-full max-w-sm space-y-2 text-xs">
+            <div className="flex justify-between">
+              <span className="text-slate-600">Subtotal Neto:</span>
+              <span className="font-medium text-right">{formatARS(invoice.totals.netARS)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-600">IVA:</span>
+              <span className="font-medium text-right">{formatARS(invoice.totals.ivaARS)}</span>
+            </div>
+            <div className="flex justify-between items-center bg-slate-100 p-3 rounded-md mt-2">
+              <span className="font-bold text-sm">TOTAL:</span>
+              <span className="font-bold text-sm text-right">{formatARS(invoice.totals.totalARS)}</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer with CAE and QR */}
+        {invoice.status === 'EMITIDA' && invoice.cae && (
+          <footer className="mt-12 pt-6 border-t border-gray-200 flex justify-between items-end text-xs">
+            {/* QR Code Placeholder */}
+            <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-slate-400">
+              <span>QR</span>
+            </div>
+
+            {/* CAE Info */}
+            <div className="text-right">
+              <p className="font-bold">CAE Nº: <span className="font-mono">{invoice.cae}</span></p>
+              <p><strong>Fecha Vto. de CAE:</strong> {invoice.caeDue ? new Date(invoice.caeDue).toLocaleDateString('es-AR') : 'N/A'}</p>
+            </div>
+          </footer>
+        )}
+      </div>
     </div>
   );
 };

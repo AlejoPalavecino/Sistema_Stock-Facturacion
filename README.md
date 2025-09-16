@@ -1,1 +1,20 @@
-Aplicación web de escritorio para vender, facturar y controlar inventario con integración oficial a ARCA (ex-AFIP). Emite comprobantes electrónicos (A/B/C y Notas de Crédito), obtiene CAE en línea, genera el PDF con QR fiscal y descuenta stock automáticamente desde una pantalla de venta rápida (TPV). Incluye ABM de productos/categorías, clientes y proveedores, alertas de stock bajo y reportes mensuales (por cliente y totales). Un único punto de venta, pensado para uso simple y seguro.
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
+
+# Run and deploy your AI Studio app
+
+This contains everything you need to run your app locally.
+
+View your app in AI Studio: https://ai.studio/apps/drive/1OtXHwZQMB-479aTmpobLBHAykuKVZ6HQ
+
+## Run Locally
+
+**Prerequisites:**  Node.js
+
+
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

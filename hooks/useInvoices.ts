@@ -46,28 +46,33 @@ export function useInvoices() {
         return updated;
     };
     
-    const issueInvoice = async (id: string): Promise<Invoice> => {
-        const invoice = await getById(id);
-        if (!invoice) throw new Error('Factura no encontrada.');
-        if (invoice.status !== 'BORRADOR') throw new Error('Solo se pueden emitir borradores.');
-        if (!invoice.clientId) throw new Error('Debe seleccionar un cliente.');
-        if (invoice.items.length === 0) throw new Error('La factura debe tener al menos un ítem.');
+    const issueInvoice = async (invoiceData: Invoice): Promise<Invoice> => {
+        if (invoiceData.status !== 'BORRADOR') throw new Error('Solo se pueden emitir borradores.');
+        if (!invoiceData.clientId) throw new Error('Debe seleccionar un cliente.');
+        if (invoiceData.items.length === 0) throw new Error('La factura debe tener al menos un ítem.');
 
-        // Verify stock for all items
-        for (const item of invoice.items) {
+        // 1. Verify stock for all items
+        for (const item of invoiceData.items) {
             const product = await productsRepo.getById(item.productId);
             if (!product || product.stock < item.qty) {
                 throw new Error(`Stock insuficiente para "${item.name}". Stock disponible: ${product?.stock || 0}.`);
             }
         }
+        
+        // 2. Prepare the final state of the draft
+        const finalDraftData = {
+            ...invoiceData,
+            totals: sumTotals(invoiceData.items)
+        };
+        
+        // 3. Finalize invoice (set number, CAE, status etc.)
+        const issuedInvoice = await invoicesRepo.issue(finalDraftData);
 
-        // Deduct stock
-        for (const item of invoice.items) {
-            await productsRepo.adjustStock(item.productId, -item.qty, `Venta - Factura ${invoice.pos}-${invoice.number}`);
+        // 4. Deduct stock using final invoice number
+        for (const item of issuedInvoice.items) {
+            await productsRepo.adjustStock(item.productId, -item.qty, `Venta - Factura ${issuedInvoice.pos}-${issuedInvoice.number}`);
         }
         
-        // Finalize invoice (set number, CAE, etc.)
-        const issuedInvoice = await invoicesRepo.setStatus(id, 'EMITIDA');
         await fetchInvoices();
         return issuedInvoice;
     };

@@ -17,6 +17,13 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onU
         const updatedItem = { ...item, qty, lineTotalARS: item.unitPriceARS * qty };
         onUpdate(index, updatedItem);
     };
+    
+    const handlePriceChange = (index: number, newPrice: number) => {
+        const item = items[index];
+        const price = Math.max(0, newPrice);
+        const updatedItem = { ...item, unitPriceARS: price, lineTotalARS: price * item.qty };
+        onUpdate(index, updatedItem);
+    };
 
     const handleTaxRateChange = (index: number, newTaxRate: TaxRate) => {
         const item = items[index];
@@ -27,7 +34,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onU
 
     return (
         <div className="overflow-x-auto border border-slate-200 rounded-lg">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm text-left">
                 <thead className="bg-slate-100 text-left text-xs text-slate-600 uppercase">
                     <tr>
                         <th className="px-4 py-2">SKU</th>
@@ -49,7 +56,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onU
                     )}
                     {items.map((item, index) => (
                         <tr key={item.productId + index} className="hover:bg-slate-50">
-                            <td className="px-4 py-2 font-mono text-xs">{item.sku}</td>
+                            <td className="px-4 py-2 font-mono text-xs text-slate-500">{item.sku}</td>
                             <td className="px-4 py-2 font-medium text-slate-800">{item.name}</td>
                             <td className="px-4 py-2 w-28">
                                 {isEditable ? (
@@ -64,7 +71,20 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onU
                                     <div className="text-center">{item.qty}</div>
                                 )}
                             </td>
-                            <td className="px-4 py-2 text-right">{formatARS(item.unitPriceARS)}</td>
+                            <td className="px-4 py-2 text-right w-36">
+                                {isEditable ? (
+                                    <input 
+                                        type="number"
+                                        value={item.unitPriceARS}
+                                        onChange={(e) => handlePriceChange(index, parseFloat(e.target.value) || 0)}
+                                        className="block w-full px-3 py-2 text-base text-right text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                ) : (
+                                    formatARS(item.unitPriceARS)
+                                )}
+                            </td>
                             <td className="px-4 py-2 w-28">
                                 {isEditable ? (
                                      <select 

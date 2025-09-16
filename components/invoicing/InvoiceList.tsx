@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Invoice, InvoiceStatus } from '../../types/invoice';
 import { formatARS } from '../../utils/format';
-import { useInvoices } from '../../hooks/useInvoices';
 
 interface InvoiceListProps {
   invoices: Invoice[];
   onEdit: (id: string) => void;
   onView: (id: string) => void;
+  onCancel: (id: string) => void;
 }
 
 const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
@@ -22,10 +22,9 @@ const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     );
 };
 
-export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onView }) => {
+export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onView, onCancel }) => {
     const [statusFilter, setStatusFilter] = useState<InvoiceStatus | ''>('');
     const [searchQuery, setSearchQuery] = useState('');
-    const { cancelInvoice } = useInvoices();
 
     const filteredInvoices = useMemo(() => {
         return invoices
@@ -38,12 +37,6 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onVi
             })
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [invoices, statusFilter, searchQuery]);
-
-    const handleCancel = async (id: string) => {
-        if(window.confirm('¿Estás seguro de que quieres anular esta factura?')) {
-            await cancelInvoice(id);
-        }
-    };
 
     return (
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
@@ -82,37 +75,42 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onVi
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                        {filteredInvoices.map(inv => (
-                            <tr key={inv.id} className="hover:bg-slate-50">
-                                <td className="px-4 py-3 font-mono text-xs">{inv.pos}-{inv.number}</td>
-                                <td className="px-4 py-3 font-medium text-slate-800">{inv.clientName}</td>
-                                <td className="px-4 py-3">{new Date(inv.createdAt).toLocaleDateString()}</td>
-                                <td className="px-4 py-3"><StatusPill status={inv.status} /></td>
-                                <td className="px-4 py-3 text-right font-semibold">{formatARS(inv.totals.totalARS)}</td>
-                                <td className="px-4 py-3">
-                                    <div className="flex justify-center items-center gap-2">
-                                        {inv.status === 'BORRADOR' && (
-                                            <button onClick={() => onEdit(inv.id)} className="font-medium text-blue-600 hover:underline text-xs">Editar</button>
-                                        )}
-                                         {inv.status === 'EMITIDA' && (
-                                            <>
-                                            <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-xs">Ver/Imprimir</button>
-                                            <button onClick={() => handleCancel(inv.id)} className="font-medium text-red-600 hover:underline text-xs">Anular</button>
-                                            </>
-                                        )}
-                                        {inv.status === 'ANULADA' && (
-                                            <button onClick={() => onView(inv.id)} className="font-medium text-slate-600 hover:underline text-xs">Ver</button>
-                                        )}
-                                    </div>
+                         {filteredInvoices.length === 0 ? (
+                            <tr>
+                                <td colSpan={6} className="text-center py-10 text-slate-500">
+                                    No se encontraron facturas.
                                 </td>
                             </tr>
-                        ))}
+                        ) : (
+                            filteredInvoices.map(inv => (
+                                <tr key={inv.id} className="hover:bg-slate-50">
+                                    <td className="px-4 py-2 font-mono text-xs text-slate-700">{inv.pos}-{inv.number}</td>
+                                    <td className="px-4 py-2 font-medium text-slate-800">{inv.clientName}</td>
+                                    <td className="px-4 py-2 text-slate-600">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                                    <td className="px-4 py-2"><StatusPill status={inv.status} /></td>
+                                    <td className="px-4 py-2 text-right font-semibold text-slate-800">{formatARS(inv.totals.totalARS)}</td>
+                                    <td className="px-4 py-2">
+                                        <div className="flex items-center justify-center gap-3">
+                                            {inv.status === 'BORRADOR' && (
+                                                <button onClick={() => onEdit(inv.id)} className="font-medium text-blue-600 hover:underline text-sm">Editar</button>
+                                            )}
+                                            {inv.status === 'EMITIDA' && (
+                                                <>
+                                                    <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-sm">Ver</button>
+                                                    <button onClick={() => onCancel(inv.id)} className="font-medium text-red-600 hover:underline text-sm">Anular</button>
+                                                </>
+                                            )}
+                                            {inv.status === 'ANULADA' && (
+                                                <button onClick={() => onView(inv.id)} className="font-medium text-slate-600 hover:underline text-sm">Ver</button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
             </div>
-             {filteredInvoices.length === 0 && (
-                <p className="text-center py-8 text-slate-500">No se encontraron facturas con los filtros seleccionados.</p>
-            )}
         </div>
     );
 };
