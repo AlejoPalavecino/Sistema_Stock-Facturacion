@@ -33,6 +33,18 @@
   .animate-modal-in {
     animation: modal-pop-in 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+  
+  @media print {
+    /* When printing, hide everything by default */
+    body.is-printing > *:not(#print-container) {
+      display: none !important;
+    }
+    
+    /* Show only our temporary print container */
+    body.is-printing #print-container {
+      display: block !important;
+    }
+  }
 </style>
 </head>
   <body>

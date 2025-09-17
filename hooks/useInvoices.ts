@@ -70,7 +70,7 @@ export function useInvoices() {
 
         // 4. Deduct stock using final invoice number
         for (const item of issuedInvoice.items) {
-            await productsRepo.adjustStock(item.productId, -item.qty, `Venta - Factura ${issuedInvoice.pos}-${issuedInvoice.number}`);
+            await productsRepo.adjustStock(item.productId, -item.qty, 'sale', `Venta - Factura ${issuedInvoice.pos}-${issuedInvoice.number}`);
         }
         
         await fetchInvoices();

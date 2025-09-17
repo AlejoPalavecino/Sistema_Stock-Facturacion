@@ -1,8 +1,10 @@
 
+
 import { Product, ProductId, Category, ProductImportResult } from '../../types/product';
 import { generarSKU } from '../../utils/sku';
 import * as categoriesRepo from './categoriesRepo';
 import * as historyRepo from './historyRepo';
+import { StockMovementType } from '../../types';
 
 const STORAGE_KEY = 'products_v1';
 
@@ -139,7 +141,7 @@ export const remove = async (id: ProductId): Promise<void> => {
     return Promise.resolve();
 };
 
-export const adjustStock = async (id: ProductId, delta: number, notes: string): Promise<Product> => {
+export const adjustStock = async (id: ProductId, delta: number, type: StockMovementType, notes: string): Promise<Product> => {
     const product = findProduct(id);
     const oldStock = product.stock;
     const newStock = oldStock + delta;
@@ -156,7 +158,7 @@ export const adjustStock = async (id: ProductId, delta: number, notes: string): 
         productId: updatedProduct.id,
         productSku: updatedProduct.sku,
         productName: updatedProduct.name,
-        type: 'manual_adjustment', // This will be overwritten by invoicing logic if needed
+        type: type,
         change: delta,
         newStock: updatedProduct.stock,
         notes: notes,

@@ -1,7 +1,8 @@
 
+
 import { ProductId } from './product';
 
-export type StockMovementType = 'creation' | 'manual_adjustment' | 'deletion' | 'import';
+export type StockMovementType = 'creation' | 'manual_adjustment' | 'deletion' | 'import' | 'sale';
 
 export interface StockMovement {
   id: string; // Unique ID for the movement

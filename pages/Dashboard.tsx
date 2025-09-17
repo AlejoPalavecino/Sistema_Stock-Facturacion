@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
+import * as rr from 'react-router-dom';
 import Logo from '../components/Logo';
 
 // SVG Icons for the cards
@@ -40,7 +41,7 @@ const Dashboard: React.FC = () => {
       </div>
       <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
         {/* Facturación Card */}
-        <Link to="/facturacion" aria-label="Ir a la sección de Facturación" className={cardClasses}>
+        <rr.Link to="/facturacion" aria-label="Ir a la sección de Facturación" className={cardClasses}>
           <div className="flex items-center mb-3">
             <div className="text-slate-500 group-hover:text-blue-600 transition-colors">
               <FacturacionIcon />
@@ -48,10 +49,10 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-800 ml-4">Facturación</h2>
           </div>
           <p className="text-slate-600">Emite y gestiona comprobantes fiscales de forma rápida y segura.</p>
-        </Link>
+        </rr.Link>
         
         {/* Stock Card */}
-        <Link to="/stock" aria-label="Ir a la sección de Control de Stock" className={cardClasses}>
+        <rr.Link to="/stock" aria-label="Ir a la sección de Control de Stock" className={cardClasses}>
           <div className="flex items-center mb-3">
             <div className="text-slate-500 group-hover:text-blue-600 transition-colors">
               <StockIcon />
@@ -59,10 +60,10 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-800 ml-4">Control de Stock</h2>
           </div>
           <p className="text-slate-600">Administra inventario, productos, y movimientos de mercadería.</p>
-        </Link>
+        </rr.Link>
         
         {/* Clientes Card */}
-        <Link to="/clientes" aria-label="Ir a la sección de Clientes" className={cardClasses}>
+        <rr.Link to="/clientes" aria-label="Ir a la sección de Clientes" className={cardClasses}>
           <div className="flex items-center mb-3">
             <div className="text-slate-500 group-hover:text-blue-600 transition-colors">
               <ClientesIcon />
@@ -70,10 +71,10 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-800 ml-4">Clientes</h2>
           </div>
           <p className="text-slate-600">Gestiona tu cartera de clientes, cuentas y datos de contacto.</p>
-        </Link>
+        </rr.Link>
         
         {/* Proveedores Card */}
-        <Link to="/proveedores" aria-label="Ir a la sección de Proveedores" className={cardClasses}>
+        <rr.Link to="/proveedores" aria-label="Ir a la sección de Proveedores" className={cardClasses}>
           <div className="flex items-center mb-3">
             <div className="text-slate-500 group-hover:text-blue-600 transition-colors">
               <ProveedoresIcon />
@@ -81,7 +82,7 @@ const Dashboard: React.FC = () => {
             <h2 className="text-2xl font-bold text-slate-800 ml-4">Proveedores</h2>
           </div>
           <p className="text-slate-600">Administra proveedores, órdenes de compra y cuentas por pagar.</p>
-        </Link>
+        </rr.Link>
       </div>
     </main>
   );

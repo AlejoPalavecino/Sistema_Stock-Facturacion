@@ -1,5 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
+import * as rr from 'react-router-dom';
 import { SupplierWithDebt } from '../../types';
 import { formatARS } from '../../utils/format';
 
@@ -40,7 +41,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = ({ suppliers, onDelet
               <td className="px-6 py-4"><StatusPill active={supplier.active} /></td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-3">
-                  <Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Link>
+                  <rr.Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</rr.Link>
                   <button onClick={() => onToggleActive(supplier.id)} className="font-medium text-slate-600 hover:underline text-sm">{supplier.active ? 'Desactivar' : 'Activar'}</button>
                   <button onClick={() => onDelete(supplier)} className="font-medium text-red-600 hover:underline text-sm">Eliminar</button>
                 </div>

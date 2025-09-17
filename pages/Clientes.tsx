@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
+import * as rr from 'react-router-dom';
 import { useClients } from '../hooks/useClients';
 import { Client, ClientWithDebt } from '../types/client';
 import { ClientTable } from '../components/clients/ClientTable';
@@ -73,14 +74,14 @@ const Clientes: React.FC = () => {
 
   const PageHeader = () => (
     <header className="mb-8">
-      <Link to="/" className="inline-block mb-2">
+      <rr.Link to="/" className="inline-block mb-2">
         <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
           Volver al Dashboard
         </button>
-      </Link>
+      </rr.Link>
       <h1 className="text-4xl font-bold text-slate-800">Clientes</h1>
     </header>
   );

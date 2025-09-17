@@ -1,15 +1,18 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
+import * as rr from 'react-router-dom';
 import { useStockHistory } from '../hooks/useStockHistory';
 import { formatDateTime } from '../utils/format';
 import { StockMovementType } from '../types/history';
 
+// FIX: Add 'sale' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {
     creation: { label: 'Creación', color: 'bg-blue-100 text-blue-800' },
     manual_adjustment: { label: 'Ajuste Manual', color: 'bg-indigo-100 text-indigo-800' },
     import: { label: 'Importación', color: 'bg-purple-100 text-purple-800' },
     deletion: { label: 'Eliminación', color: 'bg-red-100 text-red-800' },
+    sale: { label: 'Venta', color: 'bg-green-100 text-green-800' },
 };
 
 const StockHistory: React.FC = () => {
@@ -17,14 +20,14 @@ const StockHistory: React.FC = () => {
 
     const PageHeader = () => (
         <header className="mb-8">
-            <Link to="/stock" className="inline-block mb-2">
+            <rr.Link to="/stock" className="inline-block mb-2">
                 <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                     Volver a Control de Stock
                 </button>
-            </Link>
+            </rr.Link>
             <h1 className="text-4xl font-bold text-slate-800">Historial de Movimientos de Stock</h1>
         </header>
     );

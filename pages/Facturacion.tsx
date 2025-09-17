@@ -1,16 +1,22 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
+import * as rr from 'react-router-dom';
 import { InvoiceForm } from '../components/invoicing/InvoiceForm';
 import { InvoiceList } from '../components/invoicing/InvoiceList';
 import { useInvoices } from '../hooks/useInvoices';
 import { Invoice } from '../types/invoice';
 import { Modal } from '../components/shared/Modal';
 import { IssuePreview } from '../components/invoicing/IssuePreview';
-import * as clientsRepo from '../services/db/clientsRepo';
 
 // Add declarations for CDN libraries
 declare const html2canvas: any;
 declare const jspdf: any;
+
+const PrintIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-8V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+);
 
 
 const Facturacion: React.FC = () => {
@@ -37,6 +43,10 @@ const Facturacion: React.FC = () => {
         setEditingInvoiceId(null);
     };
 
+    const handleCloseViewModal = () => {
+        setViewingInvoice(null);
+    };
+
     const handleViewInvoice = async (id: string) => {
         const invoiceToView = await getById(id);
         if (invoiceToView) {
@@ -57,69 +67,76 @@ const Facturacion: React.FC = () => {
             setInvoiceToCancel(null);
         }
     };
-    
-    const handleDownloadAndEmail = async () => {
-        if (!viewingInvoice) return;
 
+    const generatePdf = async () => {
         const invoiceElement = document.getElementById('invoice-preview-content');
         if (!invoiceElement) {
             console.error('Invoice element not found for PDF generation.');
-            return;
+            return null;
         }
+        
+        const { jsPDF } = jspdf;
+        const canvas = await html2canvas(invoiceElement, { scale: 2, useCORS: true, logging: false });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdfWidth = 210; 
+        const pageHeight = 297; 
+        const imgHeight = canvas.height * pdfWidth / canvas.width;
+        
+        const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-        setIsProcessing(true);
+        let heightLeft = imgHeight;
+        let position = 0;
 
-        try {
-            // 1. Fetch client email
-            let clientEmail: string | undefined;
-            if (viewingInvoice.clientId) {
-                const client = await clientsRepo.getById(viewingInvoice.clientId);
-                clientEmail = client?.email;
-            }
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
 
-            // 2. Generate PDF
-            const { jsPDF } = jspdf;
-            const canvas = await html2canvas(invoiceElement, { scale: 2, useCORS: true, logging: false });
-            const imgData = canvas.toDataURL('image/png');
-            
-            const pdfWidth = 210; 
-            const pageHeight = 297; 
-            const imgHeight = canvas.height * pdfWidth / canvas.width;
-            
-            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-
-            let heightLeft = imgHeight;
-            let position = 0;
-
+        while (heightLeft > 0) {
+            position -= pageHeight;
+            pdf.addPage();
             pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
             heightLeft -= pageHeight;
-
-            while (heightLeft > 0) {
-                position -= pageHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-            
-            // 3. Save PDF
-            pdf.save(`Factura-${viewingInvoice.pos}-${viewingInvoice.number}.pdf`);
-
-            // 4. Open email client if email exists
-            if (clientEmail) {
-                const subject = `Factura Nº ${viewingInvoice.pos}-${viewingInvoice.number}`;
-                const body = `Hola ${viewingInvoice.clientName},\n\nAdjuntamos la factura correspondiente a tu reciente operación.\n\nPor favor, no dudes en contactarnos si tienes alguna consulta.\n\nSaludos cordiales,\nTu Empresa`;
-                const mailtoLink = `mailto:${clientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.location.href = mailtoLink;
-            } else {
-                console.warn(`Cliente ${viewingInvoice.clientName} no tiene un email registrado. Se omitió el envío.`);
-                // Optionally, show a non-intrusive notification to the user here.
-            }
-
+        }
+        return pdf;
+    };
+    
+    const handleSavePdf = async () => {
+        if (!viewingInvoice) return;
+        setIsProcessing(true);
+        try {
+            const pdf = await generatePdf();
+            pdf?.save(`Factura-${viewingInvoice.pos}-${viewingInvoice.number}.pdf`);
         } catch (error) {
-            console.error('Error generating PDF or preparing email:', error);
+            console.error('Error saving PDF:', error);
         } finally {
             setIsProcessing(false);
         }
+    };
+    
+    const handlePrint = () => {
+        const invoiceContent = document.getElementById('invoice-preview-content');
+        if (!invoiceContent) {
+            console.error("Contenido de la factura no encontrado para imprimir.");
+            return;
+        }
+
+        // Create a temporary container for the printable content
+        const printContainer = document.createElement('div');
+        printContainer.id = 'print-container';
+        printContainer.innerHTML = invoiceContent.innerHTML;
+        
+        // Add the container to the document
+        document.body.appendChild(printContainer);
+        
+        // Add a class to the body to trigger print-specific styles
+        document.body.classList.add('is-printing');
+        
+        // The print call is blocking, so cleanup will happen after it's closed
+        window.print();
+        
+        // Clean up after printing
+        document.body.removeChild(printContainer);
+        document.body.classList.remove('is-printing');
     };
 
 
@@ -131,14 +148,14 @@ const Facturacion: React.FC = () => {
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <header className="mb-8 flex justify-between items-center">
                     <div>
-                        <Link to="/" className="inline-block mb-2">
+                        <rr.Link to="/" className="inline-block mb-2">
                            <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
                                 Volver al Dashboard
                             </button>
-                        </Link>
+                        </rr.Link>
                         <h1 className="text-4xl font-bold text-slate-800">Facturación</h1>
                     </div>
                 </header>
@@ -177,7 +194,7 @@ const Facturacion: React.FC = () => {
             {viewingInvoice && (
                 <Modal 
                     isOpen={!!viewingInvoice} 
-                    onClose={() => setViewingInvoice(null)} 
+                    onClose={handleCloseViewModal}
                     title={`Factura ${viewingInvoice.pos}-${viewingInvoice.number}`}
                     size="4xl"
                 >
@@ -187,17 +204,25 @@ const Facturacion: React.FC = () => {
                         </div>
                         <div className="flex justify-end gap-3 mt-6 p-6 border-t border-slate-200 print-hidden">
                              <button
-                                onClick={() => setViewingInvoice(null)}
+                                onClick={handleCloseViewModal}
                                 className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
                              >
                                 Cerrar
                             </button>
-                            <button
-                                onClick={handleDownloadAndEmail}
+                             <button
+                                onClick={handleSavePdf}
                                 disabled={isProcessing}
                                 className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                {isProcessing ? 'Procesando...' : 'Imprimir / Guardar PDF'}
+                                {isProcessing ? 'Procesando...' : 'Guardar PDF'}
+                            </button>
+                             <button
+                                onClick={handlePrint}
+                                className="bg-slate-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors flex items-center"
+                                title="Imprimir Factura"
+                            >
+                                <PrintIcon />
+                                Imprimir
                             </button>
                         </div>
                     </div>
