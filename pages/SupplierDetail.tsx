@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSupplierDetails } from '../hooks/useSupplierDetails';
-import { formatARS } from '../../utils/format';
+import { formatARS } from '../utils/format';
 import { SupplierHistoryTable } from '../components/suppliers/SupplierHistoryTable';
 import { PurchaseModal } from '../components/suppliers/PurchaseModal';
 import { SupplierPaymentModal } from '../components/suppliers/SupplierPaymentModal';

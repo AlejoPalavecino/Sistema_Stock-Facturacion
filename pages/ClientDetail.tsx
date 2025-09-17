@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useClientDetails } from '../hooks/useClientDetails';
-import { formatARS } from '../../utils/format';
+import { formatARS } from '../utils/format';
 import { ClientHistoryTable } from '../components/clients/ClientHistoryTable';
 import { PaymentModal } from '../components/clients/PaymentModal';
 import { DebtModal } from '../components/clients/DebtModal';
