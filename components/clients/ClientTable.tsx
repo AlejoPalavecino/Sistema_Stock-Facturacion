@@ -1,6 +1,7 @@
 
 import React, { memo } from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
+import * as Router from 'react-router-dom';
 import { ClientWithDebt } from '@/types/client';
 import { formatARS } from '@/utils/format';
 
@@ -41,7 +42,7 @@ export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onDelete
               <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-red-600' : 'text-slate-700'}`}>{formatARS(client.debt)}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-3">
-                  <Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Link>
+                  <Router.Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Router.Link>
                   <button onClick={() => onToggleActive(client.id)} className="font-medium text-slate-600 hover:underline text-sm">{client.active ? 'Desactivar' : 'Activar'}</button>
                   <button onClick={() => onDelete(client)} className="font-medium text-red-600 hover:underline text-sm">Eliminar</button>
                 </div>

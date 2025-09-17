@@ -1,6 +1,7 @@
 
 import React, { Suspense, lazy } from 'react';
-import { HashRouter, Routes, Route } from 'react-router-dom';
+// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
+import * as Router from 'react-router-dom';
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // Lazy load all page components for code-splitting
@@ -16,20 +17,20 @@ const SupplierDetail = lazy(() => import('@/pages/SupplierDetail').then(module =
 
 const AppRouter: React.FC = () => {
   return (
-    <HashRouter>
+    <Router.HashRouter>
       <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/stock" element={<Stock />} />
-          <Route path="/stock/history" element={<StockHistory />} />
-          <Route path="/facturacion" element={<Facturacion />} />
-          <Route path="/clientes" element={<Clientes />} />
-          <Route path="/clientes/:clientId" element={<ClientDetail />} />
-          <Route path="/proveedores" element={<Proveedores />} />
-          <Route path="/proveedores/:supplierId" element={<SupplierDetail />} />
-        </Routes>
+        <Router.Routes>
+          <Router.Route path="/" element={<Dashboard />} />
+          <Router.Route path="/stock" element={<Stock />} />
+          <Router.Route path="/stock/history" element={<StockHistory />} />
+          <Router.Route path="/facturacion" element={<Facturacion />} />
+          <Router.Route path="/clientes" element={<Clientes />} />
+          <Router.Route path="/clientes/:clientId" element={<ClientDetail />} />
+          <Router.Route path="/proveedores" element={<Proveedores />} />
+          <Router.Route path="/proveedores/:supplierId" element={<SupplierDetail />} />
+        </Router.Routes>
       </Suspense>
-    </HashRouter>
+    </Router.HashRouter>
   );
 };
 

@@ -1,19 +1,14 @@
-
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import * as clientsRepo from '@/services/db/clientsRepo';
-import * as invoicesRepo from '@/services/db/invoicesRepo';
-import * as paymentsRepo from '@/services/db/paymentsRepo';
-import * as adjustmentsRepo from '@/services/db/adjustmentsRepo';
-import { Client } from '@/types/client';
-import { Invoice } from '@/types/invoice';
-import { Payment } from '@/types/payment';
-import { AccountAdjustment } from '@/types/adjustment';
-import { onStorageChange } from '@/utils/storage';
-
-export type ClientHistoryItem = 
-    | { type: 'INVOICE'; date: string; data: Invoice }
-    | { type: 'PAYMENT'; date: string; data: Payment }
-    | { type: 'ADJUSTMENT'; date: string; data: AccountAdjustment };
+import * as clientsRepo from '../services/db/clientsRepo';
+import * as invoicesRepo from '../services/db/invoicesRepo';
+import * as paymentsRepo from '../services/db/paymentsRepo';
+import * as adjustmentsRepo from '../services/db/adjustmentsRepo';
+import { Client } from '../types/client';
+import { Invoice } from '../types/invoice';
+import { Payment } from '../types/payment';
+import { AccountAdjustment } from '../types/adjustment';
+import { onStorageChange } from '../utils/storage';
+import { type ClientHistoryItem } from '../components/clients/ClientHistoryTable';
 
 export function useClientDetails(clientId: string) {
     const [client, setClient] = useState<Client | null>(null);
@@ -104,15 +99,31 @@ export function useClientDetails(clientId: string) {
 
         const invoiceHistory: ClientHistoryItem[] = invoices
             .filter(inv => inv.status === 'EMITIDA')
-            .map(inv => ({ type: 'INVOICE', date: inv.createdAt, data: inv }));
+            .map(inv => ({
+                type: 'FACTURA',
+                date: inv.createdAt,
+                amountARS: inv.totals.totalARS,
+                data: { id: inv.id, description: `Factura ${inv.pos}-${inv.number}` }
+            }));
 
         const paymentHistory: ClientHistoryItem[] = payments
-            .map(p => ({ type: 'PAYMENT', date: p.date, data: p }));
+            .map(p => ({
+                type: 'PAGO',
+                date: p.date,
+                amountARS: p.amountARS,
+                note: p.notes,
+                data: { id: p.id, description: `Pago recibido (${p.paymentMethod})` }
+            }));
 
         const adjustmentHistory: ClientHistoryItem[] = adjustments
-            .map(adj => ({ type: 'ADJUSTMENT', date: adj.date, data: adj }));
+            .map(adj => ({
+                type: 'AJUSTE',
+                date: adj.date,
+                amountARS: adj.amountARS,
+                data: { id: adj.id, description: `${adj.description} (${adj.type})` }
+            }));
 
-        const history = [...invoiceHistory, ...paymentHistory, ...adjustmentHistory]
+        const history: ClientHistoryItem[] = [...invoiceHistory, ...paymentHistory, ...adjustmentHistory]
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         return { debt, history };

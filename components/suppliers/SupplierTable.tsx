@@ -1,6 +1,7 @@
 
 import React, { memo } from 'react';
-import { Link } from 'react-router-dom';
+// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
+import * as Router from 'react-router-dom';
 import { SupplierWithDebt, Supplier } from '../../types';
 import { formatARS } from '../../utils/format';
 
@@ -45,7 +46,7 @@ export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, on
                 <div className="flex items-center justify-center gap-3">
                   {/* FIX: Add Edit button to trigger the onEdit handler. */}
                   <button onClick={() => onEdit(supplier)} className="font-medium text-blue-600 hover:underline text-sm">Editar</button>
-                  <Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Link>
+                  <Router.Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Router.Link>
                   <button onClick={() => onToggleActive(supplier.id)} className="font-medium text-slate-600 hover:underline text-sm">{supplier.active ? 'Desactivar' : 'Activar'}</button>
                   <button onClick={() => onDelete(supplier)} className="font-medium text-red-600 hover:underline text-sm">Eliminar</button>
                 </div>
