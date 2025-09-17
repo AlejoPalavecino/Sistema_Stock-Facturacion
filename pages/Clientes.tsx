@@ -1,13 +1,14 @@
+
 import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useClients } from '../hooks/useClients';
-import { Client, ClientWithDebt } from '../types/client';
-import { ClientTable } from '../components/clients/ClientTable';
-import { ClientForm } from '../components/clients/ClientForm';
-import { EmptyState } from '../components/clients/EmptyState';
-import { ClientImport } from '../components/clients/ClientImport';
-import { Modal } from '../components/shared/Modal';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { useClients } from '@/hooks/useClients';
+import { Client, ClientWithDebt } from '@/types/client';
+import { ClientTable } from '@/components/clients/ClientTable';
+import { ClientForm } from '@/components/clients/ClientForm';
+import { EmptyState } from '@/components/clients/EmptyState';
+import { ClientImport } from '@/components/clients/ClientImport';
+import { Modal } from '@/components/shared/Modal';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // Icons
 const PlusIcon = () => (

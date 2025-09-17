@@ -1,12 +1,13 @@
+
 import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { InvoiceForm } from '../components/invoicing/InvoiceForm';
-import { InvoiceList } from '../components/invoicing/InvoiceList';
-import { useInvoices } from '../hooks/useInvoices';
-import { Invoice } from '../types/invoice';
-import { Modal } from '../components/shared/Modal';
-import { IssuePreview } from '../components/invoicing/IssuePreview';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { InvoiceForm } from '@/components/invoicing/InvoiceForm';
+import { InvoiceList } from '@/components/invoicing/InvoiceList';
+import { useInvoices } from '@/hooks/useInvoices';
+import { Invoice } from '@/types/invoice';
+import { Modal } from '@/components/shared/Modal';
+import { IssuePreview } from '@/components/invoicing/IssuePreview';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // Add declarations for CDN libraries
 declare const html2canvas: any;

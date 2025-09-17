@@ -1,6 +1,7 @@
+
 import React, { memo } from 'react';
-import { Invoice } from '../../types/invoice';
-import { formatARS } from '../../utils/format';
+import { Invoice } from '@/types/invoice';
+import { formatARS } from '@/utils/format';
 
 interface IssuePreviewProps {
   invoice: Invoice;

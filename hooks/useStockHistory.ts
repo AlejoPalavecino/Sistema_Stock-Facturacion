@@ -1,6 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import { StockMovement } from '../types/history';
-import * as historyRepo from '../services/db/historyRepo';
+import { StockMovement } from '@/types/history';
+import * as historyRepo from '@/services/db/historyRepo';
+import { onStorageChange } from '@/utils/storage';
 
 export function useStockHistory() {
   const [history, setHistory] = useState<StockMovement[]>([]);
@@ -25,6 +27,8 @@ export function useStockHistory() {
 
   useEffect(() => {
     fetchHistory();
+    const cleanup = onStorageChange('stock_history_v1', fetchHistory);
+    return cleanup;
   }, [fetchHistory]);
 
   return {

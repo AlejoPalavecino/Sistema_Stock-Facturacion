@@ -1,22 +1,13 @@
 
-import { StockMovement } from '../types/history';
+import { StockMovement } from '@/types/history';
+import { readJSON, writeJSON } from '@/utils/storage';
 
-const STORAGE_KEY = 'stock_history_v1';
+const STORAGE_OPTIONS = { key: 'stock_history_v1', version: 'v1' as const };
 
-let history: StockMovement[] = [];
-
-try {
-    const storedHistory = localStorage.getItem(STORAGE_KEY);
-    if (storedHistory) {
-        history = JSON.parse(storedHistory);
-    }
-} catch (error) {
-    console.error("Failed to load stock history from localStorage", error);
-    history = [];
-}
+let history: StockMovement[] = readJSON(STORAGE_OPTIONS, []);
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+    writeJSON(STORAGE_OPTIONS, history);
 };
 
 // --- Public API ---

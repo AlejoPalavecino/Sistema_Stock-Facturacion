@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { useProducts } from '../../hooks/useProducts';
-import { Product } from '../../types/product';
-import { formatARS } from '../../utils/format';
+
+import React, { useMemo } from 'react';
+import { useProducts } from '@/hooks/useProducts';
+import { Product } from '@/types/product';
+import { formatARS } from '@/utils/format';
 
 interface ProductPickerProps {
   onSelectProduct: (product: Product) => void;

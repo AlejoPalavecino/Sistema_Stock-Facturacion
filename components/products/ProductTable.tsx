@@ -1,6 +1,7 @@
+
 import React, { memo } from 'react';
-import { Product } from '../../types/product';
-import { formatARS } from '../../utils/format';
+import { Product } from '@/types/product';
+import { formatARS } from '@/utils/format';
 
 interface ProductTableProps {
   products: Product[];

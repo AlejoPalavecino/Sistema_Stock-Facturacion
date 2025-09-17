@@ -1,10 +1,13 @@
+
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { SupplierWithDebt } from '../../types';
+import { SupplierWithDebt, Supplier } from '../../types';
 import { formatARS } from '../../utils/format';
 
 interface SupplierTableProps {
   suppliers: SupplierWithDebt[];
+  // FIX: Added onEdit prop to allow in-page editing from the Proveedores screen.
+  onEdit: (supplier: SupplierWithDebt) => void;
   onDelete: (supplier: SupplierWithDebt) => void;
   onToggleActive: (id: string) => void;
 }
@@ -14,7 +17,7 @@ const StatusPill: React.FC<{ active: boolean }> = ({ active }) => {
     return <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pillClasses}`}>{active ? 'Activo' : 'Inactivo'}</span>;
 };
 
-export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, onDelete, onToggleActive }) => {
+export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, onEdit, onDelete, onToggleActive }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
       <table className="w-full text-sm text-left text-slate-500">
@@ -40,6 +43,8 @@ export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, on
               <td className="px-6 py-4"><StatusPill active={supplier.active} /></td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-3">
+                  {/* FIX: Add Edit button to trigger the onEdit handler. */}
+                  <button onClick={() => onEdit(supplier)} className="font-medium text-blue-600 hover:underline text-sm">Editar</button>
                   <Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Link>
                   <button onClick={() => onToggleActive(supplier.id)} className="font-medium text-slate-600 hover:underline text-sm">{supplier.active ? 'Desactivar' : 'Activar'}</button>
                   <button onClick={() => onDelete(supplier)} className="font-medium text-red-600 hover:underline text-sm">Eliminar</button>

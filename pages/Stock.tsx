@@ -1,14 +1,15 @@
+
 import React, { useState, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useProducts } from '../hooks/useProducts';
-import { useCategories } from '../hooks/useCategories';
-import { ProductTable } from '../components/products/ProductTable';
-import { ProductForm } from '../components/products/ProductForm';
-import { EmptyState } from '../components/products/EmptyState';
-import { Product, ProductImportResult } from '../types/product';
-import { Modal } from '../components/shared/Modal';
-import { CategoryManager } from '../components/products/CategoryManager';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { useProducts } from '@/hooks/useProducts';
+import { useCategories } from '@/hooks/useCategories';
+import { ProductTable } from '@/components/products/ProductTable';
+import { ProductForm } from '@/components/products/ProductForm';
+import { EmptyState } from '@/components/products/EmptyState';
+import { Product, ProductImportResult } from '@/types/product';
+import { Modal } from '@/components/shared/Modal';
+import { CategoryManager } from '@/components/products/CategoryManager';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
@@ -267,7 +268,7 @@ const Stock: React.FC = () => {
             {products.length > 0 ? (
               <ProductTable
                 products={products}
-                onEdit={handleOpenDeleteModal}
+                onEdit={setEditingProduct}
                 onDelete={handleOpenDeleteModal}
               />
             ) : (

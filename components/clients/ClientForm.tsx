@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, memo } from 'react';
-import { Client, DocType, IvaCondition } from '../../types/client';
-import { validateDoc, normalizeDocNumber } from '../../utils/doc';
+import { Client, DocType, IvaCondition } from '@/types/client';
+import { validateDoc, normalizeDocNumber } from '@/utils/doc';
 
 interface ClientFormProps {
   clientToEdit?: Client;

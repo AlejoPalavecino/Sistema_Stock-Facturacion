@@ -1,6 +1,8 @@
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Product, ProductId, Category, ProductImportResult } from '../types/product';
-import * as productsRepo from '../services/db/productsRepo';
+import { Product, ProductId, Category, ProductImportResult } from '@/types/product';
+import * as productsRepo from '@/services/db/productsRepo';
+import { onStorageChange } from '@/utils/storage';
 
 const DEMO_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'>[] = [
     { name: 'Lápiz HB #2', category: 'Librería', priceARS: 150.50, stock: 120, minStock: 20, active: true },
@@ -42,6 +44,8 @@ export function useProducts() {
 
   useEffect(() => {
     fetchProducts();
+    const cleanup = onStorageChange('products_v1', fetchProducts);
+    return cleanup;
   }, [fetchProducts]);
 
   const createProduct = useCallback(async (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {

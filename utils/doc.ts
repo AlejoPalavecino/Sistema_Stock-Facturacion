@@ -1,4 +1,6 @@
-import { DocType, DocTypeSupplier } from '../types';
+
+import { DocType } from '@/types/client';
+import { DocTypeSupplier } from '@/types/supplier';
 
 export const normalizeDocNumber = (s: string): string => {
   return (s || '').replace(/[^0-9]/g, '');

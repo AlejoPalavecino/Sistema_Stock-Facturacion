@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
-import { Modal } from '../shared/Modal';
-import { Payment, PaymentMethod } from '../../types/payment';
+import { Modal } from '@/components/shared/Modal';
+import { Payment, PaymentMethod } from '@/types/payment';
 
 interface PaymentModalProps {
     isOpen: boolean;

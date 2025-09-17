@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
-import * as clientsRepo from '../../services/db/clientsRepo';
-import { Client } from '../../types/client';
+import * as clientsRepo from '@/services/db/clientsRepo';
+import { Client } from '@/types/client';
 
 interface ClientPickerProps {
   onSelectClient: (client: Client) => void;

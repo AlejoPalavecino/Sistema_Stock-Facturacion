@@ -1,9 +1,10 @@
-import { Client, DocType, ClientImportRow, IvaCondition } from '../../types/client';
-import { normalizeDocNumber, validateDoc } from '../../utils/doc';
-import * as invoicesRepo from './invoicesRepo';
 
-const STORAGE_KEY = 'clients_v1';
-let clients: Client[] = [];
+import { Client, DocType, ClientImportRow, IvaCondition } from '@/types/client';
+import { normalizeDocNumber, validateDoc } from '@/utils/doc';
+import * as invoicesRepo from './invoicesRepo';
+import { readJSON, writeJSON } from '@/utils/storage';
+
+const STORAGE_OPTIONS = { key: 'clients_v1', version: 'v1' as const };
 
 // FIX: Explicitly set the return type to Client[] to ensure type safety.
 // This prevents TypeScript from inferring 'docType' and 'ivaCondition' as generic strings.
@@ -15,21 +16,14 @@ const seedData = (): Client[] => {
     ];
 }
 
+let clients: Client[] = readJSON(STORAGE_OPTIONS, []);
 
-try {
-    const storedClients = localStorage.getItem(STORAGE_KEY);
-    if (storedClients) {
-        clients = JSON.parse(storedClients);
-    } else {
-        clients = seedData();
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
-    }
-} catch (error) {
-    console.error("Failed to load clients from localStorage", error);
+if (clients.length === 0) {
+    clients = seedData();
 }
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    writeJSON(STORAGE_OPTIONS, clients);
 };
 
 const findClient = (id: string) => {

@@ -1,9 +1,11 @@
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Client, ClientImportRow, ClientImportResult, ClientWithDebt } from '../types/client';
-import * as clientsRepo from '../services/db/clientsRepo';
-import * as invoicesRepo from '../services/db/invoicesRepo';
-import * as paymentsRepo from '../services/db/paymentsRepo';
-import * as adjustmentsRepo from '../services/db/adjustmentsRepo';
+import { Client, ClientImportRow, ClientImportResult, ClientWithDebt } from '@/types/client';
+import * as clientsRepo from '@/services/db/clientsRepo';
+import * as invoicesRepo from '@/services/db/invoicesRepo';
+import * as paymentsRepo from '@/services/db/paymentsRepo';
+import * as adjustmentsRepo from '@/services/db/adjustmentsRepo';
+import { onStorageChange } from '@/utils/storage';
 
 type SortableKeys = 'name' | 'docNumber' | 'createdAt' | 'debt';
 
@@ -64,6 +66,9 @@ export function useClients() {
 
   useEffect(() => {
     fetchClients();
+    const keysToWatch = ['clients_v1', 'invoices_v1', 'payments_v1', 'adjustments_v1'];
+    const cleanups = keysToWatch.map(key => onStorageChange(key, fetchClients));
+    return () => cleanups.forEach(cleanup => cleanup());
   }, [fetchClients]);
   
   const handleRepoAction = useCallback(async (action: () => Promise<any>) => {

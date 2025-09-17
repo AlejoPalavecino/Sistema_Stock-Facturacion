@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo, memo } from 'react';
-import { Invoice, InvoiceStatus } from '../../types/invoice';
-import { formatARS } from '../../utils/format';
+import { Invoice, InvoiceStatus } from '@/types/invoice';
+import { formatARS } from '@/utils/format';
 
 interface InvoiceListProps {
   invoices: Invoice[];

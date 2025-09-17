@@ -1,11 +1,12 @@
-import { InvoiceItem, InvoiceTotals, TaxRate } from '../types/invoice';
+
+import { InvoiceItem, InvoiceTotals, IvaRate } from '@/types';
 
 const round = (value: number) => Math.round(value * 100) / 100;
 
 /**
  * Calculates net and VAT from a price that includes VAT.
  */
-export const fromPriceWithVAT = (priceWithVAT: number, rate: TaxRate): { net: number; iva: number } => {
+export const fromPriceWithVAT = (priceWithVAT: number, rate: IvaRate): { net: number; iva: number } => {
   if (rate === 0) {
     return { net: round(priceWithVAT), iva: 0 };
   }

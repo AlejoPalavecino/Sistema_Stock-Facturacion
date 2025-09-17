@@ -1,6 +1,8 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import * as categoriesRepo from '../services/db/categoriesRepo';
-import * as productsRepo from '../services/db/productsRepo';
+import * as categoriesRepo from '@/services/db/categoriesRepo';
+import * as productsRepo from '@/services/db/productsRepo';
+import { onStorageChange } from '@/utils/storage';
 
 export function useCategories() {
   const [categories, setCategories] = useState<string[]>([]);
@@ -23,6 +25,8 @@ export function useCategories() {
 
   useEffect(() => {
     fetchCategories();
+    const cleanup = onStorageChange('categories_v1', fetchCategories);
+    return cleanup;
   }, [fetchCategories]);
 
   const addCategory = useCallback(async (name: string) => {

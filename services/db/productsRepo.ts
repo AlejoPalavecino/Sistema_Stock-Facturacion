@@ -1,29 +1,19 @@
 
-
-import { Product, ProductId, Category, ProductImportResult } from '../../types/product';
-import { generarSKU } from '../../utils/sku';
+import { Product, ProductId, Category, ProductImportResult } from '@/types/product';
+import { generarSKU } from '@/utils/sku';
 import * as categoriesRepo from './categoriesRepo';
 import * as historyRepo from './historyRepo';
-import { StockMovementType } from '../../types';
+import { StockMovementType } from '@/types';
+import { readJSON, writeJSON } from '@/utils/storage';
 
-const STORAGE_KEY = 'products_v1';
+const STORAGE_OPTIONS = { key: 'products_v1', version: 'v1' as const };
 
 // This is a simplified in-memory store that syncs with localStorage.
 // We use a module-level variable to simulate a database.
-let products: Product[] = [];
-
-try {
-    const storedProducts = localStorage.getItem(STORAGE_KEY);
-    if (storedProducts) {
-        products = JSON.parse(storedProducts);
-    }
-} catch (error) {
-    console.error("Failed to load products from localStorage", error);
-    products = [];
-}
+let products: Product[] = readJSON(STORAGE_OPTIONS, []);
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    writeJSON(STORAGE_OPTIONS, products);
 };
 
 const findProduct = (id: ProductId) => {

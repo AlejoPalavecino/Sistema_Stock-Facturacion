@@ -1,16 +1,17 @@
+
 import React, { Suspense, lazy } from 'react';
 import { HashRouter, Routes, Route } from 'react-router-dom';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // Lazy load all page components for code-splitting
-const Dashboard = lazy(() => import('../pages/Dashboard'));
-const Stock = lazy(() => import('../pages/Stock'));
-const Facturacion = lazy(() => import('../pages/Facturacion'));
-const Clientes = lazy(() => import('../pages/Clientes'));
-const Proveedores = lazy(() => import('../pages/Proveedores'));
-const StockHistory = lazy(() => import('../pages/StockHistory'));
-const ClientDetail = lazy(() => import('../pages/ClientDetail').then(module => ({ default: module.ClientDetail })));
-const SupplierDetail = lazy(() => import('../pages/SupplierDetail').then(module => ({ default: module.SupplierDetail })));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Stock = lazy(() => import('@/pages/Stock'));
+const Facturacion = lazy(() => import('@/pages/Facturacion'));
+const Clientes = lazy(() => import('@/pages/Clientes'));
+const Proveedores = lazy(() => import('@/pages/Proveedores'));
+const StockHistory = lazy(() => import('@/pages/StockHistory'));
+const ClientDetail = lazy(() => import('@/pages/ClientDetail').then(module => ({ default: module.ClientDetail })));
+const SupplierDetail = lazy(() => import('@/pages/SupplierDetail').then(module => ({ default: module.SupplierDetail })));
 
 
 const AppRouter: React.FC = () => {

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { ClientImportRow, ClientImportResult } from '../../types/client';
+import { ClientImportRow, ClientImportResult } from '@/types/client';
 
 declare var XLSX: any;
 

@@ -1,6 +1,9 @@
+
+import { PaymentMethod } from '@/types/common';
+// FIX: Re-export the imported PaymentMethod type.
+export type { PaymentMethod };
+
 export type PaymentId = string;
-// Fix: Consolidate payment methods to resolve export ambiguity and create a single source of truth.
-export type PaymentMethod = 'EFECTIVO' | 'TARJETA' | 'TRANSFERENCIA' | 'CHEQUE' | 'CTA_CTE';
 
 export interface Payment {
   id: PaymentId;

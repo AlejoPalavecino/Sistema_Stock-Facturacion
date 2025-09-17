@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useStockHistory } from '../hooks/useStockHistory';
-import { formatDateTime } from '../utils/format';
-import { StockMovementType } from '../types/history';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { useStockHistory } from '@/hooks/useStockHistory';
+import { formatDateTime } from '@/utils/format';
+import { StockMovementType } from '@/types/history';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // FIX: Add 'sale' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {

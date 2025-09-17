@@ -1,19 +1,12 @@
-import { Payment } from '../types/payment';
 
-const STORAGE_KEY = 'payments_v1';
-let payments: Payment[] = [];
+import { Payment } from '@/types/payment';
+import { readJSON, writeJSON } from '@/utils/storage';
 
-try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        payments = JSON.parse(stored);
-    }
-} catch (error) {
-    console.error("Failed to load payments from localStorage", error);
-}
+const STORAGE_OPTIONS = { key: 'payments_v1', version: 'v1' as const };
+let payments: Payment[] = readJSON(STORAGE_OPTIONS, []);
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
+    writeJSON(STORAGE_OPTIONS, payments);
 };
 
 export const list = async (): Promise<Payment[]> => {

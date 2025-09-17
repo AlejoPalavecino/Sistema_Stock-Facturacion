@@ -1,23 +1,17 @@
-const STORAGE_KEY = 'categories_v1';
+
+import { readJSON, writeJSON } from '@/utils/storage';
+
+const STORAGE_OPTIONS = { key: 'categories_v1', version: 'v1' as const };
 const DEFAULT_CATEGORIES = ['Librería', 'Papelería', 'Escolar', 'Tecnología', 'General'];
 
-let categories: string[] = [];
+let categories: string[] = readJSON(STORAGE_OPTIONS, DEFAULT_CATEGORIES);
 
-try {
-    const storedCategories = localStorage.getItem(STORAGE_KEY);
-    if (storedCategories) {
-        categories = JSON.parse(storedCategories);
-    } else {
-        categories = [...DEFAULT_CATEGORIES];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
-    }
-} catch (error) {
-    console.error("Failed to load categories from localStorage", error);
+if (categories.length === 0) {
     categories = [...DEFAULT_CATEGORIES];
 }
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(categories));
+    writeJSON(STORAGE_OPTIONS, categories);
 };
 
 // --- Public API ---

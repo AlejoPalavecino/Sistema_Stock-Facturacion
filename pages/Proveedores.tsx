@@ -1,13 +1,14 @@
+
 import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useSuppliers } from '../hooks/useSuppliers';
-import { Supplier } from '../types/supplier';
-import { SupplierTable } from '../components/suppliers/SupplierTable';
-import { SupplierForm } from '../components/suppliers/SupplierForm';
-import { EmptyState } from '../components/suppliers/EmptyState';
-import { SupplierImport } from '../components/suppliers/SupplierImport';
-import { Modal } from '../components/shared/Modal';
-import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { useSuppliers } from '@/hooks/useSuppliers';
+import { Supplier, SupplierWithDebt } from '@/types/supplier';
+import { SupplierTable } from '@/components/suppliers/SupplierTable';
+import { SupplierForm } from '@/components/suppliers/SupplierForm';
+import { EmptyState } from '@/components/suppliers/EmptyState';
+import { SupplierImport } from '@/components/suppliers/SupplierImport';
+import { Modal } from '@/components/shared/Modal';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
 // Icons
 const PlusIcon = () => (
@@ -51,7 +52,8 @@ const Proveedores: React.FC = () => {
     setEditingSupplier(null);
   }, [editingSupplier, createSupplier, updateSupplier]);
 
-  const handleOpenDeleteModal = useCallback((supplier: Supplier) => {
+  // FIX: Changed type from Supplier to SupplierWithDebt to match what SupplierTable provides.
+  const handleOpenDeleteModal = useCallback((supplier: SupplierWithDebt) => {
     setDeleteError(null);
     setSupplierToDelete(supplier);
   }, []);
@@ -139,7 +141,7 @@ const Proveedores: React.FC = () => {
           </div>
 
         {suppliers.length > 0 ? (
-            <SupplierTable suppliers={suppliers} onDelete={handleOpenDeleteModal} onToggleActive={deactivateSupplier} />
+            <SupplierTable suppliers={suppliers} onEdit={setEditingSupplier} onDelete={handleOpenDeleteModal} onToggleActive={deactivateSupplier} />
         ) : (
             <EmptyState onSeed={seedIfEmpty} />
         )}

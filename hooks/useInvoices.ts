@@ -1,8 +1,10 @@
+
 import { useState, useEffect, useCallback } from 'react';
-import * as invoicesRepo from '../services/db/invoicesRepo';
-import * as productsRepo from '../services/db/productsRepo';
-import { Invoice } from '../types/invoice';
-import { sumTotals } from '../utils/tax';
+import * as invoicesRepo from '@/services/db/invoicesRepo';
+import * as productsRepo from '@/services/db/productsRepo';
+import { Invoice } from '@/types/invoice';
+import { sumTotals } from '@/utils/tax';
+import { onStorageChange } from '@/utils/storage';
 
 export function useInvoices() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -24,6 +26,13 @@ export function useInvoices() {
 
     useEffect(() => {
         fetchInvoices();
+        // Also listen for changes in products for stock validation purposes
+        const cleanInvoices = onStorageChange('invoices_v1', fetchInvoices);
+        const cleanProducts = onStorageChange('products_v1', fetchInvoices);
+        return () => {
+            cleanInvoices();
+            cleanProducts();
+        };
     }, [fetchInvoices]);
 
     const getById = useCallback(async (id: string): Promise<Invoice | null> => {

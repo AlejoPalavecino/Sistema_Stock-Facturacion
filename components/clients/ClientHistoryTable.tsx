@@ -1,6 +1,7 @@
+
 import React from 'react';
-import { formatARS } from '../../utils/format';
-import { ClientHistoryItem } from '../../hooks/useClientDetails';
+import { formatARS } from '@/utils/format';
+import { ClientHistoryItem } from '@/hooks/useClientDetails';
 
 interface ClientHistoryTableProps {
     history: ClientHistoryItem[];
@@ -61,22 +62,4 @@ export const ClientHistoryTable: React.FC<ClientHistoryTableProps> = ({ history 
                         </tr>
                     ) : (
                         history.map((item, index) => (
-                            <tr key={`${item.type}-${item.data.id}-${index}`} className="bg-white hover:bg-slate-50">
-                                <td className="px-6 py-4 whitespace-nowrap">{new Date(item.date).toLocaleDateString('es-AR')}</td>
-                                <td className="px-6 py-4 font-medium text-slate-800">
-                                    {renderDescription(item)}
-                                </td>
-                                <td className="px-6 py-4 text-right font-semibold text-red-600">
-                                    {renderDebit(item)}
-                                </td>
-                                <td className="px-6 py-4 text-right font-semibold text-green-600">
-                                    {renderCredit(item)}
-                                </td>
-                            </tr>
-                        ))
-                    )}
-                </tbody>
-            </table>
-        </div>
-    );
-};
+                            <tr key={`${item.type}-${item.data.id}-${index}`}

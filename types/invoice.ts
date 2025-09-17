@@ -1,12 +1,12 @@
-// Fix: Import and re-export the consolidated PaymentMethod type.
-import { PaymentMethod } from './payment';
-export { PaymentMethod };
+
+import { PaymentMethod, IvaRate } from '@/types/common';
+// FIX: Re-export imported types so they are available to other modules importing from this file.
+export type { PaymentMethod, IvaRate };
 
 export type InvoiceId = string;
 export type InvoiceStatus = 'BORRADOR' | 'EMITIDA' | 'ANULADA';
 export type InvoiceType = 'A' | 'B' | 'C';
 export type Concept = 'PRODUCTOS';
-export type TaxRate = 0 | 10.5 | 21;
 
 export interface InvoiceItem {
   productId: string;
@@ -14,7 +14,7 @@ export interface InvoiceItem {
   name: string;
   qty: number;
   unitPriceARS: number; // Price with VAT included
-  taxRate: TaxRate;
+  taxRate: IvaRate;
   lineTotalARS: number; // unitPriceARS * qty
 }
 

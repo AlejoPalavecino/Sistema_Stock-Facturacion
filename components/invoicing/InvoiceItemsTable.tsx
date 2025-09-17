@@ -1,6 +1,7 @@
+
 import React, { memo } from 'react';
-import { InvoiceItem, TaxRate } from '../../types/invoice';
-import { formatARS } from '../../utils/format';
+import { InvoiceItem, IvaRate } from '@/types/invoice';
+import { formatARS } from '@/utils/format';
 
 interface InvoiceItemsTableProps {
   items: InvoiceItem[];
@@ -25,7 +26,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = memo(({ items
         onUpdate(index, updatedItem);
     };
 
-    const handleTaxRateChange = (index: number, newTaxRate: TaxRate) => {
+    const handleTaxRateChange = (index: number, newTaxRate: IvaRate) => {
         const item = items[index];
         const updatedItem = { ...item, taxRate: newTaxRate };
         onUpdate(index, updatedItem);
@@ -89,7 +90,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = memo(({ items
                                 {isEditable ? (
                                      <select 
                                         value={item.taxRate} 
-                                        onChange={(e) => handleTaxRateChange(index, parseFloat(e.target.value) as TaxRate)}
+                                        onChange={(e) => handleTaxRateChange(index, parseFloat(e.target.value) as IvaRate)}
                                         className="block w-full px-3 py-2 text-base text-center text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                                     >
                                         <option value={21}>21%</option>

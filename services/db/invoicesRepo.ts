@@ -1,20 +1,13 @@
-import { Invoice, InvoiceStatus, InvoiceId } from '../../types/invoice';
-import { getNextInvoiceNumber, incrementInvoiceNumber } from '../../utils/numbering';
 
-const STORAGE_KEY = 'invoices_v1';
-let invoices: Invoice[] = [];
+import { Invoice, InvoiceStatus, InvoiceId } from '@/types/invoice';
+import { getNextInvoiceNumber, incrementInvoiceNumber } from '@/utils/numbering';
+import { readJSON, writeJSON } from '@/utils/storage';
 
-try {
-    const storedInvoices = localStorage.getItem(STORAGE_KEY);
-    if (storedInvoices) {
-        invoices = JSON.parse(storedInvoices);
-    }
-} catch (error) {
-    console.error("Failed to load invoices from localStorage", error);
-}
+const STORAGE_OPTIONS = { key: 'invoices_v1', version: 'v1' as const };
+let invoices: Invoice[] = readJSON(STORAGE_OPTIONS, []);
 
 const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(invoices));
+    writeJSON(STORAGE_OPTIONS, invoices);
 };
 
 const findInvoice = (id: InvoiceId) => {

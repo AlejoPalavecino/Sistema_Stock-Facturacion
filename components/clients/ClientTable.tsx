@@ -1,7 +1,8 @@
+
 import React, { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { ClientWithDebt } from '../../types/client';
-import { formatARS } from '../../utils/format';
+import { ClientWithDebt } from '@/types/client';
+import { formatARS } from '@/utils/format';
 
 interface ClientTableProps {
   clients: ClientWithDebt[];

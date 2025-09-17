@@ -1,14 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
-import { useInvoices } from '../../hooks/useInvoices';
-import { Invoice, InvoiceItem, TaxRate, PaymentMethod, InvoiceType, Concept } from '../../types/invoice';
-import { Client } from '../../types/client';
-import { Product } from '../../types/product';
+import { useInvoices } from '@/hooks/useInvoices';
+import { Invoice, InvoiceItem, PaymentMethod, InvoiceType, Concept, IvaRate } from '@/types/invoice';
+import { Client } from '@/types/client';
+import { Product } from '@/types/product';
 import { ClientPicker } from './ClientPicker';
 import { ProductPicker } from './ProductPicker';
 import { InvoiceItemsTable } from './InvoiceItemsTable';
-import { formatARS } from '../../utils/format';
-import { Modal } from '../shared/Modal';
-import { sumTotals } from '../../utils/tax';
+import { formatARS } from '@/utils/format';
+import { Modal } from '@/components/shared/Modal';
+import { sumTotals } from '@/utils/tax';
 
 interface InvoiceFormProps {
   invoiceId: string;

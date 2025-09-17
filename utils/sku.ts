@@ -1,4 +1,5 @@
-import { Category } from '../types/product';
+
+import { Category } from '@/types/product';
 
 /**
  * Generates a product SKU based on its name and category.
