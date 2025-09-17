@@ -52,7 +52,7 @@ export function useSuppliers() {
     fetchSuppliers();
   }, [fetchSuppliers]);
 
-  const handleRepoAction = async (action: () => Promise<any>) => {
+  const handleRepoAction = useCallback(async (action: () => Promise<any>) => {
     try {
       setError(null);
       await action();
@@ -62,23 +62,40 @@ export function useSuppliers() {
       setError(message);
       throw err; // Re-throw to be caught in UI if needed
     }
-  };
+  }, [fetchSuppliers]);
 
-  const createSupplier = (data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => handleRepoAction(() => suppliersRepo.create(data));
-  const updateSupplier = (id: string, data: Partial<Supplier>) => handleRepoAction(() => suppliersRepo.update(id, data));
-  const removeSupplier = (id: string) => handleRepoAction(() => suppliersRepo.remove(id));
-  const deactivateSupplier = (id: string) => handleRepoAction(() => suppliersRepo.deactivate(id));
-  const seedIfEmpty = () => handleRepoAction(suppliersRepo.seedIfEmpty);
+  const createSupplier = useCallback((data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => handleRepoAction(() => suppliersRepo.create(data)), [handleRepoAction]);
+  const updateSupplier = useCallback((id: string, data: Partial<Supplier>) => handleRepoAction(() => suppliersRepo.update(id, data)), [handleRepoAction]);
+  const removeSupplier = useCallback((id: string) => handleRepoAction(() => suppliersRepo.remove(id)), [handleRepoAction]);
+  const deactivateSupplier = useCallback((id: string) => handleRepoAction(() => suppliersRepo.deactivate(id)), [handleRepoAction]);
+  const seedIfEmpty = useCallback(() => handleRepoAction(suppliersRepo.seedIfEmpty), [handleRepoAction]);
 
-  const importSuppliers = async (data: SupplierImportRow[]): Promise<SupplierImportResult> => {
+  const importSuppliers = useCallback(async (data: SupplierImportRow[]): Promise<SupplierImportResult> => {
       const result = await suppliersRepo.batchCreate(data);
       if (result.successCount > 0) {
           await fetchSuppliers();
       }
       return result;
-  };
+  }, [fetchSuppliers]);
 
-  const exportSuppliers = (format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
+  const filteredAndSortedSuppliers = useMemo(() => {
+    let result = [...suppliers];
+    if (onlyActive) result = result.filter(s => s.active);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(s => s.businessName.toLowerCase().includes(q) || s.cuit.includes(q));
+    }
+    result.sort((a, b) => {
+      const valA = a[sortBy];
+      const valB = b[sortBy];
+      if (valA < valB) return (sortBy === 'createdAt' || sortBy === 'debt') ? 1 : -1;
+      if (valA > valB) return (sortBy === 'createdAt' || sortBy === 'debt') ? -1 : 1;
+      return 0;
+    });
+    return result;
+  }, [suppliers, searchQuery, onlyActive, sortBy]);
+  
+  const exportSuppliers = useCallback((format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
       const dataToExport = onlyFiltered ? filteredAndSortedSuppliers : suppliers;
       if (format === 'json') {
           return new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
@@ -100,24 +117,7 @@ export function useSuppliers() {
           const csvContent = `${headers}\n${rows.join('\n')}`;
           return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       }
-  };
-
-  const filteredAndSortedSuppliers = useMemo(() => {
-    let result = [...suppliers];
-    if (onlyActive) result = result.filter(s => s.active);
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(s => s.businessName.toLowerCase().includes(q) || s.cuit.includes(q));
-    }
-    result.sort((a, b) => {
-      const valA = a[sortBy];
-      const valB = b[sortBy];
-      if (valA < valB) return (sortBy === 'createdAt' || sortBy === 'debt') ? 1 : -1;
-      if (valA > valB) return (sortBy === 'createdAt' || sortBy === 'debt') ? -1 : 1;
-      return 0;
-    });
-    return result;
-  }, [suppliers, searchQuery, onlyActive, sortBy]);
+  }, [suppliers, filteredAndSortedSuppliers]);
 
   return {
     suppliers: filteredAndSortedSuppliers,

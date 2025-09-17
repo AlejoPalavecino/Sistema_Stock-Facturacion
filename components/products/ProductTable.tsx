@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Product } from '../../types/product';
 import { formatARS } from '../../utils/format';
 
@@ -41,7 +41,7 @@ const StatusPill: React.FC<{ stock: number; minStock: number }> = ({ stock, minS
 };
 
 
-export const ProductTable: React.FC<ProductTableProps> = ({ products, onEdit, onDelete }) => {
+export const ProductTable: React.FC<ProductTableProps> = memo(({ products, onEdit, onDelete }) => {
 
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
@@ -98,4 +98,4 @@ export const ProductTable: React.FC<ProductTableProps> = ({ products, onEdit, on
       </table>
     </div>
   );
-};
+});

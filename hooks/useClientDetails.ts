@@ -51,7 +51,7 @@ export function useClientDetails(clientId: string) {
         fetchData();
     }, [fetchData]);
 
-    const addPayment = async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId'>) => {
+    const addPayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId'>) => {
         if (!clientId) return;
         try {
             await paymentsRepo.create({ ...paymentData, clientId });
@@ -60,9 +60,9 @@ export function useClientDetails(clientId: string) {
             setError(err instanceof Error ? err.message : "No se pudo registrar el pago.");
             throw err;
         }
-    };
+    }, [clientId, fetchData]);
     
-    const addAdjustment = async (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId'>) => {
+    const addAdjustment = useCallback(async (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId'>) => {
         if (!clientId) return;
         try {
             await adjustmentsRepo.create({ ...adjustmentData, clientId });
@@ -71,9 +71,9 @@ export function useClientDetails(clientId: string) {
             setError(err instanceof Error ? err.message : "No se pudo registrar el ajuste.");
             throw err;
         }
-    };
+    }, [clientId, fetchData]);
     
-    const updateClient = async (data: Partial<Client>) => {
+    const updateClient = useCallback(async (data: Partial<Client>) => {
         if (!client) return;
         try {
             await clientsRepo.update(clientId, data);
@@ -82,7 +82,7 @@ export function useClientDetails(clientId: string) {
             setError(err instanceof Error ? err.message : "No se pudo actualizar el cliente.");
             throw err;
         }
-    };
+    }, [client, clientId, fetchData]);
 
     const { debt, history } = useMemo(() => {
         const totalInvoiced = invoices

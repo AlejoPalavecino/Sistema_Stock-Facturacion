@@ -1,6 +1,5 @@
-import React, { useState, useRef } from 'react';
-// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
-import * as rr from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useSuppliers } from '../hooks/useSuppliers';
 import { Supplier } from '../types/supplier';
 import { SupplierTable } from '../components/suppliers/SupplierTable';
@@ -8,6 +7,7 @@ import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { EmptyState } from '../components/suppliers/EmptyState';
 import { SupplierImport } from '../components/suppliers/SupplierImport';
 import { Modal } from '../components/shared/Modal';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 
 // Icons
 const PlusIcon = () => (
@@ -42,21 +42,21 @@ const Proveedores: React.FC = () => {
   const [isImportModalOpen, setImportModalOpen] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const handleFormSave = async (supplierData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleFormSave = useCallback(async (supplierData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingSupplier && editingSupplier !== 'new') {
       await updateSupplier(editingSupplier.id, supplierData);
     } else {
       await createSupplier(supplierData);
     }
     setEditingSupplier(null);
-  };
+  }, [editingSupplier, createSupplier, updateSupplier]);
 
-  const handleOpenDeleteModal = (supplier: Supplier) => {
+  const handleOpenDeleteModal = useCallback((supplier: Supplier) => {
     setDeleteError(null);
     setSupplierToDelete(supplier);
-  };
+  }, []);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (supplierToDelete) {
       try {
         await removeSupplier(supplierToDelete.id);
@@ -65,9 +65,9 @@ const Proveedores: React.FC = () => {
         setDeleteError(err instanceof Error ? err.message : 'Error desconocido.');
       }
     }
-  };
+  }, [supplierToDelete, removeSupplier]);
   
-  const handleExport = (format: 'json' | 'csv') => {
+  const handleExport = useCallback((format: 'json' | 'csv') => {
     const blob = exportSuppliers(format, true);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -75,23 +75,30 @@ const Proveedores: React.FC = () => {
     a.download = `proveedores_export.${format}`;
     a.click();
     URL.revokeObjectURL(url);
-  };
+  }, [exportSuppliers]);
 
 
   const PageHeader = () => (
     <header className="mb-8">
-      <rr.Link to="/" className="inline-block mb-2">
+      <Link to="/" className="inline-block mb-2">
         <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
           Volver al Dashboard
         </button>
-      </rr.Link>
+      </Link>
       <h1 className="text-4xl font-bold text-slate-800">Proveedores</h1>
     </header>
   );
 
   if (loading && !suppliers.length) {
-    return <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><PageHeader /><p>Cargando...</p></div>;
+    return (
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <PageHeader />
+        <div className="flex justify-center items-center h-64">
+            <LoadingSpinner />
+        </div>
+      </div>
+    );
   }
   
   const renderContent = () => {

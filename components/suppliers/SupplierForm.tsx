@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Supplier, DocTypeSupplier, IvaCondition, PaymentTerms } from '../../types/supplier';
 import { validateSupplierDoc, normalizeCUIT } from '../../utils/doc';
 import { isValidCBU, normalizeCBU, normalizeAlias } from '../../utils/bank';
@@ -27,7 +27,7 @@ const initialFormData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'> = {
   active: true,
 };
 
-export const SupplierForm: React.FC<SupplierFormProps> = ({ supplierToEdit, onSave, onCancel }) => {
+export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit, onSave, onCancel }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -214,4 +214,4 @@ export const SupplierForm: React.FC<SupplierFormProps> = ({ supplierToEdit, onSa
       </form>
     </div>
   );
-};
+});

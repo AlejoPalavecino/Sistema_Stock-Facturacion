@@ -1,10 +1,9 @@
-
 import React from 'react';
-// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
-import * as rr from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useStockHistory } from '../hooks/useStockHistory';
 import { formatDateTime } from '../utils/format';
 import { StockMovementType } from '../types/history';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 
 // FIX: Add 'sale' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {
@@ -20,14 +19,14 @@ const StockHistory: React.FC = () => {
 
     const PageHeader = () => (
         <header className="mb-8">
-            <rr.Link to="/stock" className="inline-block mb-2">
+            <Link to="/stock" className="inline-block mb-2">
                 <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
                     Volver a Control de Stock
                 </button>
-            </rr.Link>
+            </Link>
             <h1 className="text-4xl font-bold text-slate-800">Historial de Movimientos de Stock</h1>
         </header>
     );
@@ -36,7 +35,9 @@ const StockHistory: React.FC = () => {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <PageHeader />
-                <p>Cargando historial...</p>
+                <div className="flex justify-center items-center h-64">
+                    <LoadingSpinner />
+                </div>
             </div>
         );
     }

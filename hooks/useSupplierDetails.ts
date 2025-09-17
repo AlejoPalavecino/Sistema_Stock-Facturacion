@@ -45,8 +45,7 @@ export function useSupplierDetails(supplierId: string) {
         fetchData();
     }, [fetchData]);
 
-    // FIX: Corrected the type of `data` to not expect `status`, as it's set within the function.
-    const addPurchase = async (data: Omit<Purchase, 'id' | 'createdAt' | 'supplierId' | 'status'>) => {
+    const addPurchase = useCallback(async (data: Omit<Purchase, 'id' | 'createdAt' | 'supplierId' | 'status'>) => {
         if (!supplierId) return;
         try {
             await purchasesRepo.create({ ...data, supplierId, status: 'PENDIENTE' });
@@ -55,9 +54,9 @@ export function useSupplierDetails(supplierId: string) {
             setError(err instanceof Error ? err.message : "No se pudo registrar la compra.");
             throw err;
         }
-    };
+    }, [supplierId, fetchData]);
 
-    const addPayment = async (data: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId'>) => {
+    const addPayment = useCallback(async (data: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId'>) => {
         if (!supplierId) return;
         try {
             await supplierPaymentsRepo.create({ ...data, supplierId });
@@ -66,9 +65,9 @@ export function useSupplierDetails(supplierId: string) {
             setError(err instanceof Error ? err.message : "No se pudo registrar el pago.");
             throw err;
         }
-    };
+    }, [supplierId, fetchData]);
 
-    const updateSupplier = async (data: Partial<Supplier>) => {
+    const updateSupplier = useCallback(async (data: Partial<Supplier>) => {
         if (!supplier) return;
         try {
             await suppliersRepo.update(supplierId, data);
@@ -77,7 +76,7 @@ export function useSupplierDetails(supplierId: string) {
             setError(err instanceof Error ? err.message : "No se pudo actualizar el proveedor.");
             throw err;
         }
-    };
+    }, [supplier, supplierId, fetchData]);
 
     const { debt, history } = useMemo(() => {
         const totalPurchased = purchases.reduce((sum, p) => sum + p.totalAmountARS, 0);

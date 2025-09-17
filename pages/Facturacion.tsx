@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
-// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
-import * as rr from 'react-router-dom';
+import React, { useState, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { InvoiceForm } from '../components/invoicing/InvoiceForm';
 import { InvoiceList } from '../components/invoicing/InvoiceList';
 import { useInvoices } from '../hooks/useInvoices';
 import { Invoice } from '../types/invoice';
 import { Modal } from '../components/shared/Modal';
 import { IssuePreview } from '../components/invoicing/IssuePreview';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 
 // Add declarations for CDN libraries
 declare const html2canvas: any;
@@ -28,47 +28,47 @@ const Facturacion: React.FC = () => {
     const [invoiceToCancel, setInvoiceToCancel] = useState<Invoice | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleNewInvoice = async () => {
+    const handleNewInvoice = useCallback(async () => {
         const newDraft = await createDraft();
         if (newDraft) {
             setEditingInvoiceId(newDraft.id);
         }
-    };
+    }, [createDraft]);
 
-    const handleEditInvoice = (id: string) => {
+    const handleEditInvoice = useCallback((id: string) => {
         setEditingInvoiceId(id);
-    };
+    }, []);
 
-    const handleCloseForm = () => {
+    const handleCloseForm = useCallback(() => {
         setEditingInvoiceId(null);
-    };
+    }, []);
 
-    const handleCloseViewModal = () => {
+    const handleCloseViewModal = useCallback(() => {
         setViewingInvoice(null);
-    };
+    }, []);
 
-    const handleViewInvoice = async (id: string) => {
+    const handleViewInvoice = useCallback(async (id: string) => {
         const invoiceToView = await getById(id);
         if (invoiceToView) {
             setViewingInvoice(invoiceToView);
         }
-    };
+    }, [getById]);
 
-    const handleOpenCancelModal = (id: string) => {
+    const handleOpenCancelModal = useCallback((id: string) => {
         const invoice = invoices.find(inv => inv.id === id);
         if (invoice) {
             setInvoiceToCancel(invoice);
         }
-    };
+    }, [invoices]);
 
-    const handleConfirmCancel = async () => {
+    const handleConfirmCancel = useCallback(async () => {
         if (invoiceToCancel) {
             await cancelInvoice(invoiceToCancel.id);
             setInvoiceToCancel(null);
         }
-    };
+    }, [invoiceToCancel, cancelInvoice]);
 
-    const generatePdf = async () => {
+    const generatePdf = useCallback(async () => {
         const invoiceElement = document.getElementById('invoice-preview-content');
         if (!invoiceElement) {
             console.error('Invoice element not found for PDF generation.');
@@ -98,9 +98,9 @@ const Facturacion: React.FC = () => {
             heightLeft -= pageHeight;
         }
         return pdf;
-    };
+    }, []);
     
-    const handleSavePdf = async () => {
+    const handleSavePdf = useCallback(async () => {
         if (!viewingInvoice) return;
         setIsProcessing(true);
         try {
@@ -111,51 +111,45 @@ const Facturacion: React.FC = () => {
         } finally {
             setIsProcessing(false);
         }
-    };
+    }, [viewingInvoice, generatePdf]);
     
-    const handlePrint = () => {
+    const handlePrint = useCallback(() => {
         const invoiceContent = document.getElementById('invoice-preview-content');
         if (!invoiceContent) {
             console.error("Contenido de la factura no encontrado para imprimir.");
             return;
         }
 
-        // Create a temporary container for the printable content
         const printContainer = document.createElement('div');
         printContainer.id = 'print-container';
         printContainer.innerHTML = invoiceContent.innerHTML;
         
-        // Add the container to the document
         document.body.appendChild(printContainer);
-        
-        // Add a class to the body to trigger print-specific styles
         document.body.classList.add('is-printing');
         
-        // The print call is blocking, so cleanup will happen after it's closed
         window.print();
         
-        // Clean up after printing
         document.body.removeChild(printContainer);
         document.body.classList.remove('is-printing');
-    };
+    }, []);
 
 
-    if (loading) return <p>Cargando facturas...</p>;
-    if (error) return <p className="text-red-500">{error}</p>;
+    if (loading) return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
+    if (error) return <p className="text-red-500 p-8">{error}</p>;
 
     return (
         <div className="bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <header className="mb-8 flex justify-between items-center">
                     <div>
-                        <rr.Link to="/" className="inline-block mb-2">
+                        <Link to="/" className="inline-block mb-2">
                            <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
                                 Volver al Dashboard
                             </button>
-                        </rr.Link>
+                        </Link>
                         <h1 className="text-4xl font-bold text-slate-800">Facturación</h1>
                     </div>
                 </header>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { StockMovement } from '../types/history';
 import * as historyRepo from '../services/db/historyRepo';

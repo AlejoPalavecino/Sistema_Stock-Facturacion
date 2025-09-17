@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 
 interface CategoryManagerProps {
   categories: string[];
@@ -32,7 +32,7 @@ const CancelIcon = () => (
     </svg>
 );
 
-export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, onAdd, onUpdate, onDelete, error }) => {
+export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categories, onAdd, onUpdate, onDelete, error }) => {
   const [newCategory, setNewCategory] = useState('');
   const [editingCategory, setEditingCategory] = useState<{ oldName: string; newName: string } | null>(null);
 
@@ -121,4 +121,4 @@ export const CategoryManager: React.FC<CategoryManagerProps> = ({ categories, on
       </div>
     </div>
   );
-};
+});

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { InvoiceItem, TaxRate } from '../../types/invoice';
 import { formatARS } from '../../utils/format';
 
@@ -9,7 +9,7 @@ interface InvoiceItemsTableProps {
   isEditable: boolean;
 }
 
-export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onUpdate, onRemove, isEditable }) => {
+export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = memo(({ items, onUpdate, onRemove, isEditable }) => {
     
     const handleQtyChange = (index: number, newQty: number) => {
         const item = items[index];
@@ -116,4 +116,4 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = ({ items, onU
             </table>
         </div>
     );
-};
+});

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { Invoice, InvoiceStatus } from '../../types/invoice';
 import { formatARS } from '../../utils/format';
 
@@ -22,7 +22,7 @@ const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
     );
 };
 
-export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onView, onCancel }) => {
+export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit, onView, onCancel }) => {
     const [statusFilter, setStatusFilter] = useState<InvoiceStatus | ''>('');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -113,4 +113,4 @@ export const InvoiceList: React.FC<InvoiceListProps> = ({ invoices, onEdit, onVi
             </div>
         </div>
     );
-};
+});

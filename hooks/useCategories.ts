@@ -25,7 +25,7 @@ export function useCategories() {
     fetchCategories();
   }, [fetchCategories]);
 
-  const addCategory = async (name: string) => {
+  const addCategory = useCallback(async (name: string) => {
     try {
       setError(null);
       await categoriesRepo.create(name);
@@ -33,10 +33,11 @@ export function useCategories() {
     } catch (err) {
       const message = err instanceof Error ? err.message : `No se pudo añadir la categoría.`;
       setError(message);
+      throw err;
     }
-  };
+  }, [fetchCategories]);
 
-  const updateCategory = async (oldName: string, newName: string) => {
+  const updateCategory = useCallback(async (oldName: string, newName: string) => {
     if (oldName === newName) return;
     try {
       setError(null);
@@ -46,10 +47,11 @@ export function useCategories() {
     } catch (err) {
       const message = err instanceof Error ? err.message : `No se pudo actualizar la categoría.`;
       setError(message);
+      throw err;
     }
-  };
+  }, [fetchCategories]);
 
-  const deleteCategory = async (name: string) => {
+  const deleteCategory = useCallback(async (name: string) => {
     try {
       setError(null);
       const isInUse = await productsRepo.isCategoryInUse(name);
@@ -61,8 +63,9 @@ export function useCategories() {
     } catch (err) {
       const message = err instanceof Error ? err.message : `No se pudo eliminar la categoría.`;
       setError(message);
+      throw err;
     }
-  };
+  }, [fetchCategories]);
 
   return {
     categories,

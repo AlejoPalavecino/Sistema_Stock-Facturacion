@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Client, DocType, IvaCondition } from '../../types/client';
 import { validateDoc, normalizeDocNumber } from '../../utils/doc';
 
@@ -20,7 +20,7 @@ const initialFormData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> = {
   active: true,
 };
 
-export const ClientForm: React.FC<ClientFormProps> = ({ clientToEdit, onSave, onCancel }) => {
+export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSave, onCancel }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -138,4 +138,4 @@ export const ClientForm: React.FC<ClientFormProps> = ({ clientToEdit, onSave, on
       </form>
     </div>
   );
-};
+});

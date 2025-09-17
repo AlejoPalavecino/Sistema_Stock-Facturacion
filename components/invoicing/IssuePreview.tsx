@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Invoice } from '../../types/invoice';
 import { formatARS } from '../../utils/format';
 
@@ -6,7 +6,7 @@ interface IssuePreviewProps {
   invoice: Invoice;
 }
 
-export const IssuePreview: React.FC<IssuePreviewProps> = ({ invoice }) => {
+export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
   return (
     <div className="p-8 bg-white text-gray-800 font-sans text-sm">
       <div className="border-2 border-gray-200 p-8 rounded-lg">
@@ -102,4 +102,4 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({ invoice }) => {
       </div>
     </div>
   );
-};
+});

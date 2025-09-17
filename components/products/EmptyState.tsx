@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 interface EmptyStateProps {
   onSeed: () => void;
@@ -14,7 +14,7 @@ const EmptyBoxIcon = () => (
 );
 
 
-export const EmptyState: React.FC<EmptyStateProps> = ({ onSeed }) => {
+export const EmptyState: React.FC<EmptyStateProps> = memo(({ onSeed }) => {
   return (
     <div className="text-center bg-white rounded-lg shadow-sm border-2 border-dashed border-slate-200 p-12">
       <EmptyBoxIcon />
@@ -36,4 +36,4 @@ export const EmptyState: React.FC<EmptyStateProps> = ({ onSeed }) => {
       </div>
     </div>
   );
-};
+});

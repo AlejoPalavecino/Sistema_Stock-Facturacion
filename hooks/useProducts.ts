@@ -44,28 +44,28 @@ export function useProducts() {
     fetchProducts();
   }, [fetchProducts]);
 
-  const createProduct = async (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createProduct = useCallback(async (data: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     await productsRepo.create(data);
     await fetchProducts();
-  };
+  }, [fetchProducts]);
 
-  const updateProduct = async (id: ProductId, data: Partial<Product>) => {
+  const updateProduct = useCallback(async (id: ProductId, data: Partial<Product>) => {
     await productsRepo.update(id, data);
     await fetchProducts();
-  };
+  }, [fetchProducts]);
   
-  const removeProduct = async (id: ProductId) => {
+  const removeProduct = useCallback(async (id: ProductId) => {
     await productsRepo.remove(id);
     await fetchProducts();
-  };
+  }, [fetchProducts]);
 
-  const importProducts = async (data: any[]): Promise<ProductImportResult> => {
+  const importProducts = useCallback(async (data: any[]): Promise<ProductImportResult> => {
     const result = await productsRepo.batchCreate(data);
     if (result.successCount > 0) {
-        await fetchProducts(); // Refresh list if any product was added
+        await fetchProducts();
     }
     return result;
-  };
+  }, [fetchProducts]);
   
   const seedIfEmpty = useCallback(async () => {
     const currentProducts = await productsRepo.list();
@@ -75,7 +75,7 @@ export function useProducts() {
             for (const p of DEMO_PRODUCTS) {
                 await productsRepo.create(p);
             }
-            await fetchProducts(); // Refetch all to get the new products
+            await fetchProducts();
         } catch (err) {
             setError('No se pudieron cargar los datos de prueba.');
             console.error(err);

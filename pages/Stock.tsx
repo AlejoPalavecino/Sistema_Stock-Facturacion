@@ -1,7 +1,5 @@
-
-import React, { useState, useRef } from 'react';
-// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
-import * as rr from 'react-router-dom';
+import React, { useState, useRef, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { ProductTable } from '../components/products/ProductTable';
@@ -10,6 +8,7 @@ import { EmptyState } from '../components/products/EmptyState';
 import { Product, ProductImportResult } from '../types/product';
 import { Modal } from '../components/shared/Modal';
 import { CategoryManager } from '../components/products/CategoryManager';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
@@ -75,18 +74,18 @@ const Stock: React.FC = () => {
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExportExcel = () => {
+  const handleExportExcel = useCallback(() => {
     const worksheet = XLSX.utils.json_to_sheet(products);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Productos");
     XLSX.writeFile(workbook, "products_export.xlsx");
-  };
+  }, [products]);
 
-  const handleImportClick = () => {
+  const handleImportClick = useCallback(() => {
     fileInputRef.current?.click();
-  };
+  }, []);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -110,43 +109,43 @@ const Stock: React.FC = () => {
         }
     };
     reader.readAsText(file);
-  };
+  }, [importProducts]);
   
-  const handleFormSave = async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleFormSave = useCallback(async (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingProduct && editingProduct !== 'new') {
       await updateProduct(editingProduct.id, productData);
     } else {
       await createProduct(productData);
     }
     setEditingProduct(null);
-  };
+  }, [editingProduct, updateProduct, createProduct]);
 
-  const handleOpenDeleteModal = (product: Product) => {
+  const handleOpenDeleteModal = useCallback((product: Product) => {
     setProductToDelete(product);
-  };
+  }, []);
 
-  const handleCloseDeleteModal = () => {
+  const handleCloseDeleteModal = useCallback(() => {
     setProductToDelete(null);
-  };
+  }, []);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     if (productToDelete) {
       await removeProduct(productToDelete.id);
       handleCloseDeleteModal();
     }
-  };
+  }, [productToDelete, removeProduct, handleCloseDeleteModal]);
 
 
   const PageHeader = () => (
     <header className="mb-8">
-      <rr.Link to="/" className="inline-block mb-2">
+      <Link to="/" className="inline-block mb-2">
         <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Volver al Dashboard
         </button>
-      </rr.Link>
+      </Link>
       <h1 className="text-4xl font-bold text-slate-800">Control de Stock</h1>
     </header>
   );
@@ -155,7 +154,9 @@ const Stock: React.FC = () => {
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
             <PageHeader />
-            <p>Cargando...</p>
+            <div className="flex justify-center items-center h-64">
+                <LoadingSpinner />
+            </div>
         </div>
     );
   }
@@ -205,10 +206,10 @@ const Stock: React.FC = () => {
                     <CategoryIcon />
                     Gestionar Categorías
                 </button>
-                <rr.Link to="/stock/history" className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                <Link to="/stock/history" className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                     <HistoryIcon />
                     Ver Historial
-                </rr.Link>
+                </Link>
                 <input
                     type="file"
                     accept=".json"
@@ -266,7 +267,7 @@ const Stock: React.FC = () => {
             {products.length > 0 ? (
               <ProductTable
                 products={products}
-                onEdit={(product) => setEditingProduct(product)}
+                onEdit={handleOpenDeleteModal}
                 onDelete={handleOpenDeleteModal}
               />
             ) : (

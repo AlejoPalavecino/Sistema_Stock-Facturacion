@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { Product } from '../../types/product';
 
 interface ProductFormProps {
@@ -18,7 +18,7 @@ const initialFormData = {
   active: true,
 };
 
-export const ProductForm: React.FC<ProductFormProps> = ({ productToEdit, onSave, onCancel, categories }) => {
+export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, onSave, onCancel, categories }) => {
   const [formData, setFormData] = useState(() => ({
       ...initialFormData,
       category: categories[0] || ''
@@ -197,4 +197,4 @@ export const ProductForm: React.FC<ProductFormProps> = ({ productToEdit, onSave,
       </form>
     </div>
   );
-};
+});

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import * as productsRepo from '../../services/db/productsRepo';
 import { Product } from '../../types/product';
 import { Modal } from '../shared/Modal';
@@ -45,7 +45,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
 
     const total = useMemo(() => cart.reduce((sum, item) => sum + item.priceARS * item.qty, 0), [cart]);
 
-    const handleAddProduct = (product: Product) => {
+    const handleAddProduct = useCallback((product: Product) => {
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.id === product.id);
             if (existingItem) {
@@ -56,9 +56,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
             return [...prevCart, { ...product, qty: 1 }];
         });
         setProductPickerOpen(false);
-    };
+    }, []);
     
-    const handleUpdateQty = (productId: string, newQty: number) => {
+    const handleUpdateQty = useCallback((productId: string, newQty: number) => {
         setCart(prevCart => {
             const itemToUpdate = prevCart.find(item => item.id === productId);
             if (!itemToUpdate) return prevCart;
@@ -69,21 +69,21 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                 item.id === productId ? { ...item, qty: clampedQty } : item
             );
         });
-    };
+    }, []);
 
-    const handleRemoveItem = (productId: string) => {
+    const handleRemoveItem = useCallback((productId: string) => {
         setCart(prevCart => prevCart.filter(item => item.id !== productId));
-    };
+    }, []);
     
-    const resetState = () => {
+    const resetState = useCallback(() => {
         setCart([]);
         setError(null);
         setIsProcessing(false);
         setReceiptDataForPreview(null);
         onClose();
-    };
+    }, [onClose]);
     
-    const handleGenerateReceipt = async () => {
+    const handleGenerateReceipt = useCallback(async () => {
         setError(null);
         if (cart.length === 0) {
             setError("Agregue al menos un producto a la venta.");
@@ -113,9 +113,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
         } finally {
             setIsProcessing(false);
         }
-    };
+    }, [cart, total]);
     
-    const handlePrint = () => {
+    const handlePrint = useCallback(() => {
         const receiptContent = document.getElementById('quick-sale-receipt-preview');
         if (!receiptContent) {
             console.error("Contenido del comprobante no encontrado para imprimir.");
@@ -133,7 +133,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
         
         document.body.removeChild(printContainer);
         document.body.classList.remove('is-printing');
-    };
+    }, []);
     
     return (
         <>

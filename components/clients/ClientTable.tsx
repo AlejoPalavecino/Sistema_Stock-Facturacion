@@ -1,6 +1,5 @@
-import React from 'react';
-// FIX: Using namespace import for react-router-dom to avoid potential module resolution issues.
-import * as rr from 'react-router-dom';
+import React, { memo } from 'react';
+import { Link } from 'react-router-dom';
 import { ClientWithDebt } from '../../types/client';
 import { formatARS } from '../../utils/format';
 
@@ -15,7 +14,7 @@ const StatusPill: React.FC<{ active: boolean }> = ({ active }) => {
     return <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pillClasses}`}>{active ? 'Activo' : 'Inactivo'}</span>;
 };
 
-export const ClientTable: React.FC<ClientTableProps> = ({ clients, onDelete, onToggleActive }) => {
+export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onDelete, onToggleActive }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
       <table className="w-full text-sm text-left text-slate-500">
@@ -41,7 +40,7 @@ export const ClientTable: React.FC<ClientTableProps> = ({ clients, onDelete, onT
               <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-red-600' : 'text-slate-700'}`}>{formatARS(client.debt)}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-3">
-                  <rr.Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</rr.Link>
+                  <Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-sm">Ver Detalle</Link>
                   <button onClick={() => onToggleActive(client.id)} className="font-medium text-slate-600 hover:underline text-sm">{client.active ? 'Desactivar' : 'Activar'}</button>
                   <button onClick={() => onDelete(client)} className="font-medium text-red-600 hover:underline text-sm">Eliminar</button>
                 </div>
@@ -52,4 +51,4 @@ export const ClientTable: React.FC<ClientTableProps> = ({ clients, onDelete, onT
       </table>
     </div>
   );
-};
+});

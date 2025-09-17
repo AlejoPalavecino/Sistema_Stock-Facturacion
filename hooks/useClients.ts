@@ -66,7 +66,7 @@ export function useClients() {
     fetchClients();
   }, [fetchClients]);
   
-  const handleRepoAction = async (action: () => Promise<any>) => {
+  const handleRepoAction = useCallback(async (action: () => Promise<any>) => {
       try {
           setError(null);
           await action();
@@ -75,52 +75,35 @@ export function useClients() {
           setError(err instanceof Error ? err.message : 'Ocurrió un error inesperado.');
           throw err;
       }
-  }
+  }, [fetchClients]);
 
-  const createClient = async (data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const createClient = useCallback(async (data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     await handleRepoAction(() => clientsRepo.create(data));
-  };
+  }, [handleRepoAction]);
 
-  const updateClient = async (id: string, data: Partial<Client>) => {
+  const updateClient = useCallback(async (id: string, data: Partial<Client>) => {
     await handleRepoAction(() => clientsRepo.update(id, data));
-  };
+  }, [handleRepoAction]);
   
-  const removeClient = async (id: string) => {
+  const removeClient = useCallback(async (id: string) => {
     await handleRepoAction(() => clientsRepo.remove(id));
-  };
+  }, [handleRepoAction]);
   
-  const deactivateClient = async (id: string) => {
+  const deactivateClient = useCallback(async (id: string) => {
       await handleRepoAction(() => clientsRepo.deactivate(id));
-  };
+  }, [handleRepoAction]);
   
-  const seedIfEmpty = async () => {
+  const seedIfEmpty = useCallback(async () => {
       await handleRepoAction(clientsRepo.seedIfEmpty);
-  };
+  }, [handleRepoAction]);
   
-  const importClients = async (data: ClientImportRow[]): Promise<ClientImportResult> => {
+  const importClients = useCallback(async (data: ClientImportRow[]): Promise<ClientImportResult> => {
       const result = await clientsRepo.batchCreate(data);
       if (result.successCount > 0) {
           await fetchClients();
       }
       return result;
-  };
-  
-  const exportClients = (format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
-      const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
-      const clientsOnly = dataToExport.map(({debt, ...client}) => client); // remove debt from export
-      if (format === 'json') {
-          return new Blob([JSON.stringify(clientsOnly, null, 2)], { type: 'application/json' });
-      } else {
-          // Basic CSV conversion
-          const headers = Object.keys(clientsOnly[0] || {}).join(',');
-          const rows = clientsOnly.map(client => 
-              Object.values(client).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
-          );
-          const csvContent = `${headers}\n${rows.join('\n')}`;
-          return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      }
-  };
-
+  }, [fetchClients]);
 
   const filteredAndSortedClients = useMemo(() => {
     let result = [...clientsWithDebt];
@@ -146,6 +129,23 @@ export function useClients() {
 
     return result;
   }, [clientsWithDebt, searchQuery, onlyActive, sortBy]);
+
+  const exportClients = useCallback((format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
+      const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
+      const clientsOnly = dataToExport.map(({debt, ...client}) => client); // remove debt from export
+      if (format === 'json') {
+          return new Blob([JSON.stringify(clientsOnly, null, 2)], { type: 'application/json' });
+      } else {
+          // Basic CSV conversion
+          const headers = Object.keys(clientsOnly[0] || {}).join(',');
+          const rows = clientsOnly.map(client => 
+              Object.values(client).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+          );
+          const csvContent = `${headers}\n${rows.join('\n')}`;
+          return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      }
+  }, [clientsWithDebt, filteredAndSortedClients]);
+
 
   return {
     clients: filteredAndSortedClients,
