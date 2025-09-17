@@ -6,10 +6,6 @@ import { ProductPicker } from '../invoicing/ProductPicker';
 import { formatARS } from '../../utils/format';
 import { QuickSaleReceipt, QuickSaleItem } from './QuickSaleReceipt';
 
-// Add declarations for CDN libraries
-declare const html2canvas: any;
-declare const jspdf: any;
-
 interface QuickSaleModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,13 +29,19 @@ const GenerateIcon = () => (
     </svg>
 );
 
+const PrintIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm7-8V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+    </svg>
+);
+
 
 export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose }) => {
     const [cart, setCart] = useState<QuickSaleItem[]>([]);
-    const [email, setEmail] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isProductPickerOpen, setProductPickerOpen] = useState(false);
+    const [receiptDataForPreview, setReceiptDataForPreview] = useState<{ items: QuickSaleItem[], total: number } | null>(null);
 
     const total = useMemo(() => cart.reduce((sum, item) => sum + item.priceARS * item.qty, 0), [cart]);
 
@@ -75,82 +77,36 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
     
     const resetState = () => {
         setCart([]);
-        setEmail('');
         setError(null);
         setIsProcessing(false);
+        setReceiptDataForPreview(null);
         onClose();
     };
     
-    const generateReceiptPdf = async () => {
-        const receiptElement = document.getElementById('quick-sale-receipt-content');
-        if (!receiptElement) {
-            console.error('Receipt element not found for PDF generation.');
-            return null;
-        }
-        
-        // Temporarily make the element visible for rendering, but off-screen
-        receiptElement.style.position = 'absolute';
-        receiptElement.style.left = '-9999px';
-        receiptElement.classList.remove('hidden');
-
-        const { jsPDF } = jspdf;
-        const canvas = await html2canvas(receiptElement, { scale: 3 });
-        const imgData = canvas.toDataURL('image/png');
-        
-        // Hide it again
-        receiptElement.style.position = '';
-        receiptElement.style.left = '';
-        receiptElement.classList.add('hidden');
-
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'mm',
-            format: [80, 150] // Approximate receipt size
-        });
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const imgHeight = canvas.height * pdfWidth / canvas.width;
-
-        pdf.addImage(imgData, 'PNG', 5, 5, pdfWidth - 10, imgHeight - 10);
-        return pdf;
-    };
-
-
     const handleGenerateReceipt = async () => {
         setError(null);
         if (cart.length === 0) {
             setError("Agregue al menos un producto a la venta.");
             return;
         }
-        if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError("Por favor, ingrese un correo electrónico válido.");
-            return;
-        }
 
         setIsProcessing(true);
         try {
-            // 1. Generate and download PDF
-            const pdf = await generateReceiptPdf();
-            if (!pdf) {
-                throw new Error("No se pudo generar el comprobante PDF.");
+            // Step 1: Pre-flight check for stock availability
+            for (const item of cart) {
+                const product = await productsRepo.getById(item.id);
+                if (!product || product.stock < item.qty) {
+                    throw new Error(`Stock insuficiente para "${item.name}". Stock: ${product?.stock || 0}.`);
+                }
             }
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            pdf.save(`Comprobante-VentaRapida-${timestamp}.pdf`);
 
-            // 2. Adjust stock
+            // Step 2: Adjust stock for all items
             for (const item of cart) {
                 await productsRepo.adjustStock(item.id, -item.qty, 'sale', 'Venta Rápida (Remito)');
             }
-            
-            // 3. Prepare and open email client
-            if (email.trim()) {
-                const subject = `Comprobante de Venta`;
-                const body = `Hola,\n\nAdjuntamos el comprobante correspondiente a tu reciente compra.\n\nPor favor, no dudes en contactarnos si tienes alguna consulta.\n\nSaludos cordiales.`;
-                const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                window.location.href = mailtoLink;
-            }
-            
-            resetState();
+
+            // Step 3: Set data for preview modal
+            setReceiptDataForPreview({ items: cart, total: total });
 
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Error al procesar la venta.');
@@ -159,9 +115,29 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
         }
     };
     
+    const handlePrint = () => {
+        const receiptContent = document.getElementById('quick-sale-receipt-preview');
+        if (!receiptContent) {
+            console.error("Contenido del comprobante no encontrado para imprimir.");
+            return;
+        }
+
+        const printContainer = document.createElement('div');
+        printContainer.id = 'print-container';
+        printContainer.innerHTML = receiptContent.innerHTML;
+        
+        document.body.appendChild(printContainer);
+        document.body.classList.add('is-printing');
+        
+        window.print();
+        
+        document.body.removeChild(printContainer);
+        document.body.classList.remove('is-printing');
+    };
+    
     return (
         <>
-            <Modal isOpen={isOpen} onClose={resetState} title="Venta Rápida" size="2xl">
+            <Modal isOpen={isOpen && !receiptDataForPreview} onClose={resetState} title="Venta Rápida" size="2xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left side: Cart */}
                     <div className="space-y-4">
@@ -230,18 +206,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                     {/* Right side: Summary */}
                     <div className="bg-slate-100 p-6 rounded-lg flex flex-col justify-between">
                         <div>
-                             <div className="mb-6">
-                                <label htmlFor="quick-sale-email" className="block mb-1.5 text-sm font-medium text-slate-700">Email del Cliente (opcional)</label>
-                                <input
-                                  type="email"
-                                  id="quick-sale-email"
-                                  value={email}
-                                  onChange={e => setEmail(e.target.value)}
-                                  className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                                  placeholder="Para enviar copia del comprobante"
-                                />
-                             </div>
-                             <div className="space-y-2 border-t border-slate-200 pt-4">
+                             <div className="space-y-2">
                                  <div className="flex justify-between items-baseline">
                                     <span className="text-xl font-bold text-slate-800">Total</span>
                                     <span className="text-3xl font-bold text-slate-900">{formatARS(total)}</span>
@@ -253,24 +218,43 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                          <div className="mt-6">
                             <button
                                 onClick={handleGenerateReceipt}
-                                disabled={isProcessing}
-                                className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                                disabled={isProcessing || cart.length === 0}
+                                className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <GenerateIcon />
-                                {isProcessing ? 'Procesando...' : 'Finalizar y Generar Comprobante'}
+                                {isProcessing ? 'Procesando...' : 'Generar Comprobante'}
                             </button>
                          </div>
                     </div>
                 </div>
             </Modal>
             
+            {receiptDataForPreview && (
+                <Modal isOpen={!!receiptDataForPreview} onClose={resetState} title="Vista Previa del Comprobante" size="md">
+                    <div id="quick-sale-receipt-preview" className="flex justify-center bg-slate-100 p-4 rounded-md">
+                        <QuickSaleReceipt items={receiptDataForPreview.items} total={receiptDataForPreview.total} />
+                    </div>
+                    <div className="flex justify-end gap-3 mt-6">
+                        <button
+                            onClick={resetState}
+                            className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100"
+                        >
+                            Cerrar
+                        </button>
+                        <button
+                            onClick={handlePrint}
+                            className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2"
+                        >
+                            <PrintIcon />
+                            Imprimir
+                        </button>
+                    </div>
+                </Modal>
+            )}
+            
             <Modal isOpen={isProductPickerOpen} onClose={() => setProductPickerOpen(false)} title="Agregar Producto">
                 <ProductPicker onSelectProduct={handleAddProduct} />
             </Modal>
-            
-            <div className="hidden" id="quick-sale-receipt-content">
-                <QuickSaleReceipt items={cart} total={total} />
-            </div>
         </>
     );
 };
