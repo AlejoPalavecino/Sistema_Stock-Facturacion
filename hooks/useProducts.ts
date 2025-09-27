@@ -1,8 +1,8 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Product, ProductId, Category, ProductImportResult } from '@/types/product';
-import * as productsRepo from '@/services/db/productsRepo';
-import { onStorageChange } from '@/utils/storage';
+import { Product, ProductId, Category, ProductImportResult } from '../types/product.ts';
+import * as productsRepo from '../services/db/productsRepo.ts';
+import { onStorageChange } from '../utils/storage.ts';
 
 const DEMO_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'>[] = [
     { name: 'Lápiz HB #2', category: 'Librería', priceARS: 150.50, stock: 120, minStock: 20, active: true },
@@ -16,6 +16,9 @@ const DEMO_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'>[] =
 ];
 
 type SortableKeys = 'name' | 'sku' | 'stock' | 'priceARS';
+
+// For SheetJS global variable from CDN
+declare var XLSX: any;
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -115,6 +118,18 @@ export function useProducts() {
 
     return result;
   }, [products, searchQuery, categoryFilter, showOnlyLowStock, sortedBy]);
+  
+  const exportProducts = useCallback((format: 'excel') => {
+    if (format !== 'excel' || typeof XLSX === 'undefined') {
+        console.error("XLSX library not loaded or format not supported.");
+        return;
+    }
+    // Note: We use the raw 'products' array to export all data, not just the filtered view.
+    const worksheet = XLSX.utils.json_to_sheet(products);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Productos");
+    XLSX.writeFile(workbook, "products_export.xlsx");
+  }, [products]);
 
   return {
     products: filteredAndSortedProducts,
@@ -125,6 +140,7 @@ export function useProducts() {
     removeProduct,
     seedIfEmpty,
     importProducts,
+    exportProducts,
     searchQuery,
     setSearchQuery,
     categoryFilter,

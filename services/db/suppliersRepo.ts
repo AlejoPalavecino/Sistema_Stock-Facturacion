@@ -1,3 +1,4 @@
+
 import { Supplier, SupplierImportRow, DocTypeSupplier, IvaCondition, PaymentTerms, SupplierImportResult } from '../../types/supplier';
 import { normalizeCUIT, validateSupplierDoc } from '../../utils/doc';
 import { normalizeCBU, normalizeAlias, isValidCBU } from '../../utils/bank';
@@ -99,16 +100,6 @@ export const update = async (id: string, patch: Partial<Supplier>): Promise<Supp
     suppliers = suppliers.map(s => s.id === id ? updatedSupplier : s);
     persist();
     return Promise.resolve(updatedSupplier);
-};
-
-export const remove = async (id: string): Promise<void> => {
-    // TODO: Check for associated purchases in the future
-    // const hasPurchases = await purchasesRepo.hasPurchasesForSupplier(id);
-    // if (hasPurchases) throw new Error("No se puede eliminar. El proveedor tiene compras asociadas. Desactívelo en su lugar.");
-    
-    suppliers = suppliers.filter(s => s.id !== id);
-    persist();
-    return Promise.resolve();
 };
 
 export const deactivate = async (id: string): Promise<Supplier> => {

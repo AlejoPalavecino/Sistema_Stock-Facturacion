@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, memo } from 'react';
 import { Supplier, DocTypeSupplier, IvaCondition, PaymentTerms } from '../../types/supplier';
 import { validateSupplierDoc, normalizeCUIT } from '../../utils/doc';
@@ -98,7 +99,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
   };
 
   const formFieldClasses = "block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:ring-blue-500 focus:border-blue-500";
-  const labelClasses = "block mb-1.5 text-sm font-medium text-slate-700";
+  const labelClasses = "block mb-1.5 text-base font-medium text-slate-700";
 
   return (
     <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200">
@@ -199,7 +200,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
             <textarea id="notes" name="notes" rows={3} className={formFieldClasses} value={formData.notes} onChange={handleChange}></textarea>
           </div>
           <div>
-            <label className="flex items-center text-sm font-medium text-slate-700">
+            <label className="flex items-center text-base font-medium text-slate-700">
               <input type="checkbox" name="active" className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked={formData.active} onChange={handleChange} />
               <span className="ml-2">Proveedor Activo</span>
             </label>
@@ -208,8 +209,8 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
 
 
         <div className="mt-8 flex items-center justify-end gap-4">
-          <button type="button" onClick={onCancel} className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100">Cancelar</button>
-          <button type="submit" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700">Guardar Proveedor</button>
+          <button type="button" onClick={onCancel} className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100">Cancelar</button>
+          <button type="submit" className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700">Guardar Proveedor</button>
         </div>
       </form>
     </div>

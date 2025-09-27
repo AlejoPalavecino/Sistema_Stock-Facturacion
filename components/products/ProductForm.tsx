@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, memo } from 'react';
-import { Product } from '@/types/product';
+import { Product } from '../../types/product.ts';
 
 interface ProductFormProps {
   productToEdit?: Product;
@@ -78,12 +78,12 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
     }
   };
 
-  const formFieldClasses = "block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:ring-blue-500 focus:border-blue-500";
-  const labelClasses = "block mb-1.5 text-sm font-medium text-slate-700";
+  const formFieldClasses = "block w-full px-3 py-2.5 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:ring-blue-500 focus:border-blue-500";
+  const labelClasses = "block mb-1.5 text-base font-medium text-slate-700";
 
   return (
     <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">{productToEdit ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+      <h2 className="text-2xl font-semibold text-slate-900 mb-6">{productToEdit ? 'Editar Producto' : 'Nuevo Producto'}</h2>
       <form onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
@@ -98,7 +98,7 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
               onChange={handleChange}
               required
             />
-            {errors.name && <p role="alert" className="text-red-600 text-xs mt-1">{errors.name}</p>}
+            {errors.name && <p role="alert" className="text-red-600 text-sm mt-1">{errors.name}</p>}
           </div>
 
           {/* Category */}
@@ -116,7 +116,7 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
                   <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
-            {errors.category && <p role="alert" className="text-red-600 text-xs mt-1">{errors.category}</p>}
+            {errors.category && <p role="alert" className="text-red-600 text-sm mt-1">{errors.category}</p>}
           </div>
           
           {/* Price */}
@@ -132,7 +132,7 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
               min="0"
               step="0.01"
             />
-            {errors.priceARS && <p role="alert" className="text-red-600 text-xs mt-1">{errors.priceARS}</p>}
+            {errors.priceARS && <p role="alert" className="text-red-600 text-sm mt-1">{errors.priceARS}</p>}
           </div>
 
           {/* Stock */}
@@ -147,7 +147,7 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
               onChange={handleChange}
               min="0"
             />
-            {errors.stock && <p role="alert" className="text-red-600 text-xs mt-1">{errors.stock}</p>}
+            {errors.stock && <p role="alert" className="text-red-600 text-sm mt-1">{errors.stock}</p>}
           </div>
 
           {/* Min Stock */}
@@ -162,7 +162,7 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
               onChange={handleChange}
               min="0"
             />
-            {errors.minStock && <p role="alert" className="text-red-600 text-xs mt-1">{errors.minStock}</p>}
+            {errors.minStock && <p role="alert" className="text-red-600 text-sm mt-1">{errors.minStock}</p>}
           </div>
           
           {/* SKU */}
@@ -183,14 +183,14 @@ export const ProductForm: React.FC<ProductFormProps> = memo(({ productToEdit, on
         <div className="mt-8 flex items-center justify-end gap-4">
           <button 
             type="button" 
-            className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
             onClick={onCancel}
           >
             Cancelar
           </button>
           <button 
             type="submit" 
-            className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
           >
             Guardar Producto
           </button>

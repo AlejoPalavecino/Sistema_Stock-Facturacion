@@ -1,10 +1,10 @@
 
-import { Product, ProductId, Category, ProductImportResult } from '@/types/product';
-import { generarSKU } from '@/utils/sku';
+import { Product, ProductId, Category, ProductImportResult } from '../../types/product.ts';
+import { generarSKU } from '../../utils/sku.ts';
 import * as categoriesRepo from './categoriesRepo';
 import * as historyRepo from './historyRepo';
-import { StockMovementType } from '@/types';
-import { readJSON, writeJSON } from '@/utils/storage';
+import { StockMovementType } from '../../types/index.ts';
+import { readJSON, writeJSON } from '../../utils/storage.ts';
 
 const STORAGE_OPTIONS = { key: 'products_v1', version: 'v1' as const };
 

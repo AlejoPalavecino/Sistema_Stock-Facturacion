@@ -1,10 +1,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import * as invoicesRepo from '@/services/db/invoicesRepo';
-import * as productsRepo from '@/services/db/productsRepo';
-import { Invoice } from '@/types/invoice';
-import { sumTotals } from '@/utils/tax';
-import { onStorageChange } from '@/utils/storage';
+import * as invoicesRepo from '../services/db/invoicesRepo.ts';
+import * as productsRepo from '../services/db/productsRepo.ts';
+import { Invoice } from '../types/invoice.ts';
+import { sumTotals } from '../utils/tax.ts';
+import { onStorageChange } from '../utils/storage.ts';
+
+// For SheetJS global variable from CDN
+declare var XLSX: any;
 
 export function useInvoices() {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -103,6 +106,32 @@ export function useInvoices() {
         await fetchInvoices();
     }, [getById, fetchInvoices]);
 
+    const exportInvoices = useCallback((format: 'excel') => {
+        if (format !== 'excel' || typeof XLSX === 'undefined') {
+            return;
+        }
+
+        const dataToExport = invoices.map(inv => ({
+            Numero: `${inv.pos}-${inv.number}`,
+            Tipo: inv.type,
+            Cliente: inv.clientName,
+            Documento: inv.clientDocNumber,
+            Fecha: new Date(inv.createdAt).toLocaleDateString('es-AR'),
+            Estado: inv.status,
+            'Neto ARS': inv.totals.netARS,
+            'IVA ARS': inv.totals.ivaARS,
+            'Total ARS': inv.totals.totalARS,
+            MetodoPago: inv.paymentMethod,
+            CAE: inv.cae || '',
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Facturas");
+        XLSX.writeFile(workbook, "facturas_export.xlsx");
+
+    }, [invoices]);
+
     return {
         invoices,
         loading,
@@ -112,6 +141,7 @@ export function useInvoices() {
         updateInvoice,
         issueInvoice,
         cancelInvoice,
-        removeDraft
+        removeDraft,
+        exportInvoices,
     };
 }

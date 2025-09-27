@@ -2,15 +2,15 @@
 import React, { useState, useRef, useCallback } from 'react';
 // FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
-import { useProducts } from '@/hooks/useProducts';
-import { useCategories } from '@/hooks/useCategories';
-import { ProductTable } from '@/components/products/ProductTable';
-import { ProductForm } from '@/components/products/ProductForm';
-import { EmptyState } from '@/components/products/EmptyState';
-import { Product, ProductImportResult } from '@/types/product';
-import { Modal } from '@/components/shared/Modal';
-import { CategoryManager } from '@/components/products/CategoryManager';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { useProducts } from '../hooks/useProducts.ts';
+import { useCategories } from '../hooks/useCategories.ts';
+import { ProductTable } from '../components/products/ProductTable.tsx';
+import { ProductForm } from '../components/products/ProductForm.tsx';
+import { EmptyState } from '../components/products/EmptyState.tsx';
+import { Product, ProductImportResult } from '../types/product.ts';
+import { Modal } from '../components/shared/Modal.tsx';
+import { CategoryManager } from '../components/products/CategoryManager.tsx';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
@@ -58,6 +58,7 @@ const Stock: React.FC = () => {
     removeProduct,
     seedIfEmpty,
     importProducts,
+    exportProducts,
     searchQuery,
     setSearchQuery,
     categoryFilter,
@@ -77,11 +78,8 @@ const Stock: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleExportExcel = useCallback(() => {
-    const worksheet = XLSX.utils.json_to_sheet(products);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Productos");
-    XLSX.writeFile(workbook, "products_export.xlsx");
-  }, [products]);
+    exportProducts('excel');
+  }, [exportProducts]);
 
   const handleImportClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -141,14 +139,14 @@ const Stock: React.FC = () => {
   const PageHeader = () => (
     <header className="mb-8">
       <Router.Link to="/" className="inline-block mb-2">
-        <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
+        <button className="flex items-center text-base font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-4 py-2 hover:bg-slate-50 shadow-sm transition-all">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
             Volver al Dashboard
         </button>
       </Router.Link>
-      <h1 className="text-4xl font-bold text-slate-800">Control de Stock</h1>
+      <h1 className="text-4xl font-bold text-slate-900 tracking-tight">Control de Stock</h1>
     </header>
   );
 
@@ -189,26 +187,26 @@ const Stock: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
               {/* Primary Actions */}
               <div className="flex flex-wrap items-center gap-3">
-                 <button className="flex items-center justify-center bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setEditingProduct('new')}>
+                 <button className="flex items-center justify-center bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setEditingProduct('new')}>
                     <PlusIcon />
                     Nuevo Producto
                 </button>
-                <button className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={handleExportExcel}>
+                <button className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={handleExportExcel}>
                     <ExportIcon />
                     Exportar Excel
                 </button>
-                <button className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={handleImportClick}>
+                <button className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={handleImportClick}>
                     <ImportIcon />
                     Importar JSON
                 </button>
                 <button
-                    className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                    className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
                     onClick={() => setIsCategoryManagerOpen(true)}
                 >
                     <CategoryIcon />
                     Gestionar Categorías
                 </button>
-                <Router.Link to="/stock/history" className="flex items-center justify-center bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                <Router.Link to="/stock/history" className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
                     <HistoryIcon />
                     Ver Historial
                 </Router.Link>
@@ -231,7 +229,7 @@ const Stock: React.FC = () => {
                   placeholder="Buscar por nombre o SKU..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 text-base text-slate-900 border border-slate-300 rounded-lg bg-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="block w-full pl-10 pr-3 py-2.5 text-base text-slate-900 border border-slate-300 rounded-lg bg-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
             </div>
@@ -240,7 +238,7 @@ const Stock: React.FC = () => {
                 <select
                     value={categoryFilter || ''}
                     onChange={(e) => setCategoryFilter(e.target.value || null)}
-                    className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2"
+                    className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2.5"
                 >
                     <option value="">Todas las Categorías</option>
                     {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
@@ -248,14 +246,14 @@ const Stock: React.FC = () => {
                 <select
                     value={sortedBy}
                     onChange={(e) => setSortedBy(e.target.value as any)}
-                    className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2"
+                    className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2.5"
                 >
                     <option value="name">Ordenar por Nombre</option>
                     <option value="sku">Ordenar por SKU</option>
                     <option value="stock">Ordenar por Stock</option>
                     <option value="priceARS">Ordenar por Precio</option>
                 </select>
-                <label className="flex items-center text-sm font-medium text-slate-700">
+                <label className="flex items-center text-base font-medium text-slate-700">
                     <input
                         type="checkbox"
                         checked={showOnlyLowStock}
@@ -286,19 +284,19 @@ const Stock: React.FC = () => {
       >
         {productToDelete && (
           <div>
-            <p className="text-slate-600 mb-6">
+            <p className="text-slate-600 mb-6 text-base">
               ¿Estás seguro de que quieres eliminar el producto <strong className="font-semibold text-slate-800">{productToDelete.name}</strong>? Esta acción no se puede deshacer.
             </p>
             <div className="flex justify-end gap-3">
               <button
                 onClick={handleCloseDeleteModal}
-                className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+                className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                className="bg-red-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
               >
                 Eliminar Producto
               </button>
@@ -314,15 +312,15 @@ const Stock: React.FC = () => {
       >
         {importResult && (
           <div>
-            <p className="text-slate-800 font-semibold">
+            <p className="text-slate-800 font-semibold text-base">
               {importResult.successCount} productos importados correctamente.
             </p>
             {importResult.errors.length > 0 && (
               <div className="mt-4">
-                <p className="text-red-600 font-semibold">
+                <p className="text-red-600 font-semibold text-base">
                   {importResult.errors.length} productos no se pudieron importar:
                 </p>
-                <ul className="list-disc list-inside mt-2 text-sm text-slate-600 max-h-60 overflow-y-auto">
+                <ul className="list-disc list-inside mt-2 text-base text-slate-600 max-h-60 overflow-y-auto">
                   {importResult.errors.map((err, index) => (
                     <li key={index} className="mt-1">
                       <strong>Dato:</strong> {JSON.stringify(err.item).substring(0, 50)}... 
@@ -336,7 +334,7 @@ const Stock: React.FC = () => {
             <div className="flex justify-end mt-6">
               <button
                 onClick={() => setImportResult(null)}
-                className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
               >
                 Entendido
               </button>

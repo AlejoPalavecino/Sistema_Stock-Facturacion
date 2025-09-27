@@ -9,26 +9,26 @@ interface IssuePreviewProps {
 
 export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
   return (
-    <div className="p-8 bg-white text-gray-800 font-sans text-sm">
-      <div className="border-2 border-gray-200 p-8 rounded-lg">
+    <div className="p-4 sm:p-8 bg-white text-gray-800 font-sans text-sm">
+      <div className="border-2 border-gray-200 p-4 sm:p-8 rounded-lg">
         {/* Header Section */}
-        <header className="flex justify-between items-start pb-6 border-b border-gray-200">
+        <header className="flex flex-col sm:flex-row justify-between items-start pb-6 border-b border-gray-200 gap-4">
           {/* Company Info */}
           <div className="text-xs">
-            <h2 className="text-xl font-bold mb-1">LOGO EMPRESA</h2>
+            <h2 className="text-lg sm:text-xl font-bold mb-1">LOGO EMPRESA</h2>
             <p><strong>Razón Social:</strong> Tu Empresa S.A.</p>
             <p><strong>Domicilio:</strong> Calle Falsa 123, CABA</p>
             <p><strong>Condición IVA:</strong> Responsable Inscripto</p>
           </div>
 
           {/* Invoice Info */}
-          <div className="text-right">
-            <h1 className="text-4xl font-bold mb-2">FACTURA</h1>
+          <div className="text-left sm:text-right w-full sm:w-auto">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2">FACTURA</h1>
             <div className="text-xs font-mono">
               <p>Punto de Venta: {invoice.pos} Nº: {invoice.number}</p>
               <p>Fecha de Emisión: {new Date(invoice.createdAt).toLocaleDateString('es-AR')}</p>
             </div>
-            <div className="mt-4 text-4xl font-bold inline-block border-2 border-black px-4 py-2">
+            <div className="mt-4 text-3xl sm:text-4xl font-bold inline-block border-2 border-black px-4 py-2">
               {invoice.type}
             </div>
           </div>
@@ -42,8 +42,8 @@ export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
         </section>
 
         {/* Items Table */}
-        <section className="mt-6">
-          <table className="w-full text-left">
+        <section className="mt-6 overflow-x-auto">
+          <table className="w-full text-left min-w-[600px]">
             <thead>
               <tr className="bg-slate-100 text-slate-600 uppercase text-xs">
                 <th className="p-3">Código</th>
@@ -87,14 +87,14 @@ export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
 
         {/* Footer with CAE and QR */}
         {invoice.status === 'EMITIDA' && invoice.cae && (
-          <footer className="mt-12 pt-6 border-t border-gray-200 flex justify-between items-end text-xs">
+          <footer className="mt-12 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
             {/* QR Code Placeholder */}
             <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-slate-400">
               <span>QR</span>
             </div>
 
             {/* CAE Info */}
-            <div className="text-right">
+            <div className="text-center sm:text-right">
               <p className="font-bold">CAE Nº: <span className="font-mono">{invoice.cae}</span></p>
               <p><strong>Fecha Vto. de CAE:</strong> {invoice.caeDue ? new Date(invoice.caeDue).toLocaleDateString('es-AR') : 'N/A'}</p>
             </div>

@@ -1,8 +1,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import * as categoriesRepo from '@/services/db/categoriesRepo';
-import * as productsRepo from '@/services/db/productsRepo';
-import { onStorageChange } from '@/utils/storage';
+import * as categoriesRepo from '../services/db/categoriesRepo.ts';
+import * as productsRepo from '../services/db/productsRepo.ts';
+import { onStorageChange } from '../utils/storage.ts';
 
 export function useCategories() {
   const [categories, setCategories] = useState<string[]>([]);

@@ -1,6 +1,6 @@
 
-import { StockMovement } from '@/types/history';
-import { readJSON, writeJSON } from '@/utils/storage';
+import { StockMovement } from '../../types/history.ts';
+import { readJSON, writeJSON } from '../../utils/storage.ts';
 
 const STORAGE_OPTIONS = { key: 'stock_history_v1', version: 'v1' as const };
 

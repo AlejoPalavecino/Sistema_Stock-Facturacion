@@ -2,10 +2,10 @@
 import React from 'react';
 // FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
-import { useStockHistory } from '@/hooks/useStockHistory';
-import { formatDateTime } from '@/utils/format';
-import { StockMovementType } from '@/types/history';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import { useStockHistory } from '../hooks/useStockHistory.ts';
+import { formatDateTime } from '../utils/format.ts';
+import { StockMovementType } from '../types/history.ts';
+import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
 
 // FIX: Add 'sale' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {

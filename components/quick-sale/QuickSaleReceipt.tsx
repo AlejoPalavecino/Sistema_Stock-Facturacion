@@ -14,8 +14,8 @@ interface QuickSaleReceiptProps {
 export const QuickSaleReceipt: React.FC<QuickSaleReceiptProps> = ({ items, total }) => {
   return (
     // Using a fixed width similar to a thermal printer receipt (e.g., 80mm -> ~300px)
-    // and font-mono for a classic receipt look.
-    <div className="p-4 bg-white text-black font-mono" style={{ width: '302px' }}>
+    // and font-mono for a classic receipt look. max-w-full ensures it shrinks on small screens.
+    <div className="p-4 bg-white text-black font-mono max-w-full" style={{ width: '302px' }}>
       {/* Header with Company Info */}
       <div className="text-center mb-4">
         <h2 className="text-lg font-bold">Tu Empresa S.A.</h2>

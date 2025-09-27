@@ -50,7 +50,7 @@ export const SupplierDetail: React.FC = () => {
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <header className="mb-8">
                     <Router.Link to="/proveedores" className="inline-block mb-4">
-                        <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
+                        <button className="flex items-center text-base font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                             </svg>
@@ -60,12 +60,12 @@ export const SupplierDetail: React.FC = () => {
                     
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start">
                         <div>
-                            <h1 className="text-3xl font-bold text-slate-800">{supplier.businessName}</h1>
-                            <p className="text-slate-500">{supplier.docType}: {supplier.cuit}</p>
-                            <p className="text-slate-500">{supplier.email}</p>
+                            <h1 className="text-3xl font-bold text-slate-900">{supplier.businessName}</h1>
+                            <p className="text-base text-slate-700 mt-1">{supplier.docType}: {supplier.cuit}</p>
+                            <p className="text-base text-slate-700">{supplier.email}</p>
                         </div>
                         <div className="text-left md:text-right mt-4 md:mt-0">
-                            <p className="text-sm text-slate-600">Deuda con Proveedor</p>
+                            <p className="text-base text-slate-700">Deuda con Proveedor</p>
                             <p className={`text-3xl font-bold ${debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
                                 {formatARS(debt)}
                             </p>
@@ -85,26 +85,26 @@ export const SupplierDetail: React.FC = () => {
                             <div className="flex flex-wrap justify-end mb-6 gap-3">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50"
+                                    className="bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50"
                                 >
                                     Editar Proveedor
                                 </button>
                                 <button
                                     onClick={() => setPurchaseModalOpen(true)}
-                                    className="bg-white text-slate-700 font-semibold py-2 px-4 rounded-lg border border-slate-300 hover:bg-slate-50"
+                                    className="bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50"
                                 >
                                     Registrar Compra
                                 </button>
                                 <button
                                     onClick={() => setPaymentModalOpen(true)}
-                                    className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700"
+                                    className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700"
                                 >
                                     Registrar Pago
                                 </button>
                             </div>
                             
                             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-                                <h2 className="text-xl font-bold text-slate-800 mb-4">Historial de Cuenta Corriente</h2>
+                                <h2 className="text-xl font-bold text-slate-900 mb-4">Historial de Cuenta Corriente</h2>
                                 <SupplierHistoryTable history={history} />
                             </div>
                         </>

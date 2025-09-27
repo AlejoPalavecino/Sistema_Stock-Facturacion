@@ -1,5 +1,5 @@
 
-import { readJSON, writeJSON } from '@/utils/storage';
+import { readJSON, writeJSON } from '../../utils/storage.ts';
 
 const STORAGE_OPTIONS = { key: 'categories_v1', version: 'v1' as const };
 const DEFAULT_CATEGORIES = ['Librería', 'Papelería', 'Escolar', 'Tecnología', 'General'];

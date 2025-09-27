@@ -1,11 +1,14 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Client, ClientImportRow, ClientImportResult, ClientWithDebt } from '@/types/client';
-import * as clientsRepo from '@/services/db/clientsRepo';
-import * as invoicesRepo from '@/services/db/invoicesRepo';
-import * as paymentsRepo from '@/services/db/paymentsRepo';
-import * as adjustmentsRepo from '@/services/db/adjustmentsRepo';
-import { onStorageChange } from '@/utils/storage';
+import { Client, ClientImportRow, ClientImportResult, ClientWithDebt } from '../types/client.ts';
+import * as clientsRepo from '../services/db/clientsRepo.ts';
+import * as invoicesRepo from '../services/db/invoicesRepo.ts';
+import * as paymentsRepo from '../services/db/paymentsRepo.ts';
+import * as adjustmentsRepo from '../services/db/adjustmentsRepo.ts';
+import { onStorageChange, downloadBlob } from '../utils/storage.ts';
+
+// For SheetJS global variable from CDN
+declare var XLSX: any;
 
 type SortableKeys = 'name' | 'docNumber' | 'createdAt' | 'debt';
 
@@ -90,10 +93,6 @@ export function useClients() {
     await handleRepoAction(() => clientsRepo.update(id, data));
   }, [handleRepoAction]);
   
-  const removeClient = useCallback(async (id: string) => {
-    await handleRepoAction(() => clientsRepo.remove(id));
-  }, [handleRepoAction]);
-  
   const deactivateClient = useCallback(async (id: string) => {
       await handleRepoAction(() => clientsRepo.deactivate(id));
   }, [handleRepoAction]);
@@ -135,20 +134,32 @@ export function useClients() {
     return result;
   }, [clientsWithDebt, searchQuery, onlyActive, sortBy]);
 
-  const exportClients = useCallback((format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
-      const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
-      const clientsOnly = dataToExport.map(({debt, ...client}) => client); // remove debt from export
-      if (format === 'json') {
-          return new Blob([JSON.stringify(clientsOnly, null, 2)], { type: 'application/json' });
-      } else {
-          // Basic CSV conversion
-          const headers = Object.keys(clientsOnly[0] || {}).join(',');
-          const rows = clientsOnly.map(client => 
-              Object.values(client).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
-          );
-          const csvContent = `${headers}\n${rows.join('\n')}`;
-          return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      }
+  const exportClients = useCallback((format: 'json' | 'csv' | 'excel', onlyFiltered: boolean = true) => {
+    const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
+    // remove debt from export, as it's a calculated field
+    const clientsOnly = dataToExport.map(({debt, ...client}) => client);
+    
+    if (format === 'excel') {
+        const worksheet = XLSX.utils.json_to_sheet(clientsOnly);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
+        XLSX.writeFile(workbook, "clientes_export.xlsx");
+        return;
+    }
+    
+    let blob: Blob;
+    if (format === 'json') {
+        blob = new Blob([JSON.stringify(clientsOnly, null, 2)], { type: 'application/json' });
+    } else { // csv
+        const headers = Object.keys(clientsOnly[0] || {}).join(',');
+        const rows = clientsOnly.map(client => 
+            Object.values(client).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
+        );
+        const csvContent = `${headers}\n${rows.join('\n')}`;
+        blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    }
+
+    downloadBlob(blob, `clientes_export.${format}`);
   }, [clientsWithDebt, filteredAndSortedClients]);
 
 
@@ -158,7 +169,6 @@ export function useClients() {
     error,
     createClient,
     updateClient,
-    removeClient,
     deactivateClient,
     seedIfEmpty,
     importClients,

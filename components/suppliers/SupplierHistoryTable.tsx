@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { formatARS, formatDateTime } from '../../utils/format';
 import { SupplierHistoryItem } from '../../hooks/useSupplierDetails';
@@ -35,25 +36,25 @@ export const SupplierHistoryTable: React.FC<SupplierHistoryTableProps> = ({ hist
 
     return (
         <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-slate-500">
-                <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+            <table className="w-full text-left text-slate-500">
+                <thead className="text-sm font-semibold text-slate-600 uppercase bg-slate-100">
                     <tr>
-                        <th scope="col" className="px-6 py-3">Fecha</th>
-                        <th scope="col" className="px-6 py-3">Descripción</th>
-                        <th scope="col" className="px-6 py-3 text-right">Debe (Pagos)</th>
-                        <th scope="col" className="px-6 py-3 text-right">Haber (Compras)</th>
+                        <th scope="col" className="px-6 py-4">Fecha</th>
+                        <th scope="col" className="px-6 py-4">Descripción</th>
+                        <th scope="col" className="px-6 py-4 text-right">Debe (Pagos)</th>
+                        <th scope="col" className="px-6 py-4 text-right">Haber (Compras)</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                     {history.length === 0 ? (
                         <tr>
-                            <td colSpan={4} className="text-center py-10 text-slate-500">
+                            <td colSpan={4} className="text-center py-10 text-slate-500 text-base">
                                 No hay movimientos para este proveedor.
                             </td>
                         </tr>
                     ) : (
                         history.map((item, index) => (
-                            <tr key={`${item.type}-${item.data.id}-${index}`} className="bg-white hover:bg-slate-50">
+                            <tr key={`${item.type}-${item.data.id}-${index}`} className="bg-white hover:bg-slate-50 text-base">
                                 <td className="px-6 py-4 whitespace-nowrap">{new Date(item.date).toLocaleDateString('es-AR')}</td>
                                 <td className="px-6 py-4 font-medium text-slate-800">
                                     {renderDescription(item)}

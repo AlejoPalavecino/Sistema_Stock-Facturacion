@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 
 interface ModalProps {
@@ -44,7 +45,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-6 border-b border-slate-200 flex-shrink-0">
-          <h3 id="modal-title" className="text-xl font-semibold text-slate-800">
+          <h3 id="modal-title" className="text-2xl font-semibold text-slate-800">
             {title}
           </h3>
         </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import * as productsRepo from '../../services/db/productsRepo';
 import { Product } from '../../types/product';
@@ -153,8 +154,8 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                     {cart.map(item => (
                                         <li key={item.id} className="p-3 flex items-center gap-4">
                                             <div className="flex-grow">
-                                                <p className="font-medium text-slate-800">{item.name}</p>
-                                                <p className="text-xs text-slate-500">{formatARS(item.priceARS)}</p>
+                                                <p className="font-medium text-slate-800 text-base">{item.name}</p>
+                                                <p className="text-sm text-slate-500">{formatARS(item.priceARS)}</p>
                                             </div>
 
                                             {/* Improved Quantity Input */}
@@ -171,7 +172,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                                     type="number" 
                                                     value={item.qty}
                                                     onChange={e => handleUpdateQty(item.id, parseInt(e.target.value) || 1)}
-                                                    className="w-12 text-center border-none focus:ring-0 text-slate-800 font-medium bg-white"
+                                                    className="w-12 text-center border-none focus:ring-0 text-slate-800 font-medium bg-white text-base"
                                                     min="1"
                                                     max={item.stock}
                                                     aria-label={`Cantidad para ${item.name}`}
@@ -186,7 +187,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                                 </button>
                                             </div>
 
-                                            <p className="w-20 text-right font-semibold text-slate-800">{formatARS(item.priceARS * item.qty)}</p>
+                                            <p className="w-20 text-right font-semibold text-slate-800 text-base">{formatARS(item.priceARS * item.qty)}</p>
                                             
                                             <button onClick={() => handleRemoveItem(item.id)} className="text-slate-400 hover:text-red-600 rounded-full p-1 transition-colors" aria-label={`Quitar ${item.name}`}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -198,7 +199,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                 </ul>
                              )}
                          </div>
-                         <button onClick={() => setProductPickerOpen(true)} className="w-full bg-slate-100 text-slate-700 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
+                         <button onClick={() => setProductPickerOpen(true)} className="w-full bg-slate-100 text-slate-700 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 text-base">
                            <AddIcon />
                            Agregar Producto
                          </button>
@@ -219,7 +220,7 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                             <button
                                 onClick={handleGenerateReceipt}
                                 disabled={isProcessing || cart.length === 0}
-                                className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full bg-green-600 text-white font-bold text-base py-3 px-4 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 <GenerateIcon />
                                 {isProcessing ? 'Procesando...' : 'Generar Comprobante'}
@@ -237,13 +238,13 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                     <div className="flex justify-end gap-3 mt-6">
                         <button
                             onClick={resetState}
-                            className="text-sm font-semibold text-slate-700 py-2 px-4 rounded-lg hover:bg-slate-100"
+                            className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100"
                         >
                             Cerrar
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2"
+                            className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2"
                         >
                             <PrintIcon />
                             Imprimir

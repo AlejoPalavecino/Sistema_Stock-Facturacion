@@ -64,45 +64,45 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
             </div>
 
             <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                    <thead className="text-left text-xs text-slate-600 uppercase bg-slate-100">
+                <table className="w-full">
+                    <thead className="text-left text-sm font-semibold text-slate-600 uppercase bg-slate-100">
                         <tr>
-                            <th className="px-4 py-2">Número</th>
-                            <th className="px-4 py-2">Cliente</th>
-                            <th className="px-4 py-2">Fecha</th>
-                            <th className="px-4 py-2">Estado</th>
-                            <th className="px-4 py-2 text-right">Total</th>
-                            <th className="px-4 py-2 text-center">Acciones</th>
+                            <th className="px-4 py-3">Número</th>
+                            <th className="px-4 py-3">Cliente</th>
+                            <th className="px-4 py-3">Fecha</th>
+                            <th className="px-4 py-3">Estado</th>
+                            <th className="px-4 py-3 text-right">Total</th>
+                            <th className="px-4 py-3 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                          {filteredInvoices.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="text-center py-10 text-slate-500">
+                                <td colSpan={6} className="text-center py-10 text-slate-500 text-base">
                                     No se encontraron facturas.
                                 </td>
                             </tr>
                         ) : (
                             filteredInvoices.map(inv => (
-                                <tr key={inv.id} className="hover:bg-slate-50">
-                                    <td className="px-4 py-2 font-mono text-xs text-slate-700">{inv.pos}-{inv.number}</td>
-                                    <td className="px-4 py-2 font-medium text-slate-800">{inv.clientName}</td>
-                                    <td className="px-4 py-2 text-slate-600">{new Date(inv.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-4 py-2"><StatusPill status={inv.status} /></td>
-                                    <td className="px-4 py-2 text-right font-semibold text-slate-800">{formatARS(inv.totals.totalARS)}</td>
-                                    <td className="px-4 py-2">
+                                <tr key={inv.id} className="hover:bg-slate-50 text-base">
+                                    <td className="px-4 py-3 font-mono text-slate-700">{inv.pos}-{inv.number}</td>
+                                    <td className="px-4 py-3 font-medium text-slate-800">{inv.clientName}</td>
+                                    <td className="px-4 py-3 text-slate-600">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                                    <td className="px-4 py-3"><StatusPill status={inv.status} /></td>
+                                    <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatARS(inv.totals.totalARS)}</td>
+                                    <td className="px-4 py-3">
                                         <div className="flex items-center justify-center gap-3">
                                             {inv.status === 'BORRADOR' && (
-                                                <button onClick={() => onEdit(inv.id)} className="font-medium text-blue-600 hover:underline text-sm">Editar</button>
+                                                <button onClick={() => onEdit(inv.id)} className="font-medium text-blue-600 hover:underline text-base">Editar</button>
                                             )}
                                             {inv.status === 'EMITIDA' && (
                                                 <>
-                                                    <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-sm">Ver</button>
-                                                    <button onClick={() => onCancel(inv.id)} className="font-medium text-red-600 hover:underline text-sm">Anular</button>
+                                                    <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-base">Ver</button>
+                                                    <button onClick={() => onCancel(inv.id)} className="font-medium text-red-600 hover:underline text-base">Anular</button>
                                                 </>
                                             )}
                                             {inv.status === 'ANULADA' && (
-                                                <button onClick={() => onView(inv.id)} className="font-medium text-slate-600 hover:underline text-sm">Ver</button>
+                                                <button onClick={() => onView(inv.id)} className="font-medium text-slate-600 hover:underline text-base">Ver</button>
                                             )}
                                         </div>
                                     </td>

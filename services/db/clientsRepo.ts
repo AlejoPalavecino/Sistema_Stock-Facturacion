@@ -1,8 +1,8 @@
 
-import { Client, DocType, ClientImportRow, IvaCondition } from '@/types/client';
-import { normalizeDocNumber, validateDoc } from '@/utils/doc';
+import { Client, DocType, ClientImportRow, IvaCondition } from '../../types/client.ts';
+import { normalizeDocNumber, validateDoc } from '../../utils/doc.ts';
 import * as invoicesRepo from './invoicesRepo';
-import { readJSON, writeJSON } from '@/utils/storage';
+import { readJSON, writeJSON } from '../../utils/storage.ts';
 
 const STORAGE_OPTIONS = { key: 'clients_v1', version: 'v1' as const };
 
@@ -95,16 +95,6 @@ export const update = async (id: string, patch: Partial<Client>): Promise<Client
     clients = clients.map(c => c.id === id ? updatedClient : c);
     persist();
     return Promise.resolve(updatedClient);
-};
-
-export const remove = async (id: string): Promise<void> => {
-    const hasInvoices = await invoicesRepo.hasInvoicesForClient(id);
-    if (hasInvoices) {
-        throw new Error("No se puede eliminar el cliente porque tiene facturas asociadas. Por favor, desactívelo en su lugar.");
-    }
-    clients = clients.filter(c => c.id !== id);
-    persist();
-    return Promise.resolve();
 };
 
 export const deactivate = async (id: string): Promise<Client> => {

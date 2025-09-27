@@ -1,9 +1,13 @@
+
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Supplier, SupplierWithDebt, SupplierImportRow, SupplierImportResult } from '../types/supplier';
 import * as suppliersRepo from '../services/db/suppliersRepo';
 import * as purchasesRepo from '../services/db/purchasesRepo';
 import * as supplierPaymentsRepo from '../services/db/supplierPaymentsRepo';
+import { onStorageChange, downloadBlob } from '../utils/storage';
 
+// For SheetJS global variable from CDN
+declare var XLSX: any;
 
 type SortableKeys = 'businessName' | 'cuit' | 'createdAt' | 'debt';
 
@@ -50,6 +54,9 @@ export function useSuppliers() {
 
   useEffect(() => {
     fetchSuppliers();
+    const keysToWatch = ['suppliers_v1', 'purchases_v1', 'supplier_payments_v1'];
+    const cleanups = keysToWatch.map(key => onStorageChange(key, fetchSuppliers));
+    return () => cleanups.forEach(c => c());
   }, [fetchSuppliers]);
 
   const handleRepoAction = useCallback(async (action: () => Promise<any>) => {
@@ -66,7 +73,6 @@ export function useSuppliers() {
 
   const createSupplier = useCallback((data: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => handleRepoAction(() => suppliersRepo.create(data)), [handleRepoAction]);
   const updateSupplier = useCallback((id: string, data: Partial<Supplier>) => handleRepoAction(() => suppliersRepo.update(id, data)), [handleRepoAction]);
-  const removeSupplier = useCallback((id: string) => handleRepoAction(() => suppliersRepo.remove(id)), [handleRepoAction]);
   const deactivateSupplier = useCallback((id: string) => handleRepoAction(() => suppliersRepo.deactivate(id)), [handleRepoAction]);
   const seedIfEmpty = useCallback(() => handleRepoAction(suppliersRepo.seedIfEmpty), [handleRepoAction]);
 
@@ -95,28 +101,43 @@ export function useSuppliers() {
     return result;
   }, [suppliers, searchQuery, onlyActive, sortBy]);
   
-  const exportSuppliers = useCallback((format: 'json' | 'csv', onlyFiltered: boolean = true): Blob => {
-      const dataToExport = onlyFiltered ? filteredAndSortedSuppliers : suppliers;
-      if (format === 'json') {
-          return new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
-      } else {
-          // Flatten bank data for CSV
-          const flatData = dataToExport.map(s => {
-              const { bank, ...rest } = s;
-              return {
-                  ...rest,
-                  bankName: bank?.bankName,
-                  cbu: bank?.cbu,
-                  alias: bank?.alias,
-              };
-          });
-          const headers = Object.keys(flatData[0] || {}).join(',');
-          const rows = flatData.map(s => 
-              Object.values(s).map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')
-          );
-          const csvContent = `${headers}\n${rows.join('\n')}`;
-          return new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      }
+  const exportSuppliers = useCallback((format: 'json' | 'csv' | 'excel', onlyFiltered: boolean = true) => {
+    const dataToExport = onlyFiltered ? filteredAndSortedSuppliers : suppliers;
+
+    if (format === 'json') {
+        const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+        downloadBlob(blob, 'proveedores_export.json');
+        return;
+    }
+
+    // For CSV and Excel, flatten the bank data for a better structure
+    const flatData = dataToExport.map(s => {
+        const { bank, ...rest } = s;
+        return {
+            ...rest,
+            bankName: bank?.bankName,
+            cbu: bank?.cbu,
+            alias: bank?.alias,
+        };
+    });
+
+    if (format === 'excel') {
+        if (typeof XLSX === 'undefined') return;
+        const worksheet = XLSX.utils.json_to_sheet(flatData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Proveedores");
+        XLSX.writeFile(workbook, "proveedores_export.xlsx");
+
+    } else if (format === 'csv') {
+        if (!flatData.length) return;
+        const headers = Object.keys(flatData[0]).join(',');
+        const rows = flatData.map(s => 
+            Object.values(s).map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(',')
+        );
+        const csvContent = `${headers}\n${rows.join('\n')}`;
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        downloadBlob(blob, 'proveedores_export.csv');
+    }
   }, [suppliers, filteredAndSortedSuppliers]);
 
   return {
@@ -125,7 +146,6 @@ export function useSuppliers() {
     error,
     createSupplier,
     updateSupplier,
-    removeSupplier,
     deactivateSupplier,
     importSuppliers,
     exportSuppliers,

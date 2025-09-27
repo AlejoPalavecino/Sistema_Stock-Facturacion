@@ -1,5 +1,6 @@
 
-import { InvoiceItem, InvoiceTotals, IvaRate } from '@/types';
+
+import { InvoiceItem, InvoiceTotals, IvaRate } from '../types/index.ts';
 
 const round = (value: number) => Math.round(value * 100) / 100;
 

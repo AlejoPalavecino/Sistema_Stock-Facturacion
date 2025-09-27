@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { formatARS } from '../../utils/format';
 
@@ -25,13 +26,13 @@ export default function ClientHistoryTable({
 }: ClientHistoryTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm text-left text-slate-500">
-        <thead className="text-xs text-slate-700 uppercase bg-slate-100">
+      <table className="w-full text-base text-left text-slate-500">
+        <thead className="text-sm font-semibold text-slate-600 uppercase bg-slate-100">
           <tr>
-            <th scope="col" className="px-6 py-3">Tipo</th>
-            <th scope="col" className="px-6 py-3">Fecha</th>
-            <th scope="col" className="px-6 py-3">Descripción</th>
-            <th scope="col" className="px-6 py-3 text-right">Importe</th>
+            <th scope="col" className="px-6 py-4">Tipo</th>
+            <th scope="col" className="px-6 py-4">Fecha</th>
+            <th scope="col" className="px-6 py-4">Descripción</th>
+            <th scope="col" className="px-6 py-4 text-right">Importe</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200">

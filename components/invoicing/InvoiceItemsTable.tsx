@@ -1,7 +1,7 @@
 
 import React, { memo } from 'react';
-import { InvoiceItem, IvaRate } from '@/types/invoice';
-import { formatARS } from '@/utils/format';
+import { InvoiceItem, IvaRate } from '../../types/invoice.ts';
+import { formatARS } from '../../utils/format.ts';
 
 interface InvoiceItemsTableProps {
   items: InvoiceItem[];
@@ -36,7 +36,7 @@ export const InvoiceItemsTable: React.FC<InvoiceItemsTableProps> = memo(({ items
     return (
         <div className="overflow-x-auto border border-slate-200 rounded-lg">
             <table className="w-full text-sm text-left">
-                <thead className="bg-slate-100 text-left text-xs text-slate-600 uppercase">
+                <thead className="bg-slate-100 text-left text-sm font-semibold text-slate-600 uppercase">
                     <tr>
                         <th className="px-4 py-2">SKU</th>
                         <th className="px-4 py-2">Producto</th>

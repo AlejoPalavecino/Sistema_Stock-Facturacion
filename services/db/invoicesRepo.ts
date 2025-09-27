@@ -1,7 +1,7 @@
 
-import { Invoice, InvoiceStatus, InvoiceId } from '@/types/invoice';
-import { getNextInvoiceNumber, incrementInvoiceNumber } from '@/utils/numbering';
-import { readJSON, writeJSON } from '@/utils/storage';
+import { Invoice, InvoiceStatus, InvoiceId } from '../../types/invoice.ts';
+import { getNextInvoiceNumber, incrementInvoiceNumber } from '../../utils/numbering.ts';
+import { readJSON, writeJSON } from '../../utils/storage.ts';
 
 const STORAGE_OPTIONS = { key: 'invoices_v1', version: 'v1' as const };
 let invoices: Invoice[] = readJSON(STORAGE_OPTIONS, []);
