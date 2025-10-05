@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Product, ProductId, Category, ProductImportResult } from '../types/product.ts';
+import { Product, ProductId, Category, ProductImportResult } from '../types';
 import * as productsRepo from '../services/db/productsRepo.ts';
 import { onStorageChange } from '../utils/storage.ts';
+import { usePagination } from './usePagination.ts';
 
 const DEMO_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'>[] = [
     { name: 'Lápiz HB #2', category: 'Librería', priceARS: 150.50, stock: 120, minStock: 20, active: true },
@@ -119,6 +119,8 @@ export function useProducts() {
     return result;
   }, [products, searchQuery, categoryFilter, showOnlyLowStock, sortedBy]);
   
+  const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<Product>(filteredAndSortedProducts);
+
   const exportProducts = useCallback((format: 'excel') => {
     if (format !== 'excel' || typeof XLSX === 'undefined') {
         console.error("XLSX library not loaded or format not supported.");
@@ -132,7 +134,7 @@ export function useProducts() {
   }, [products]);
 
   return {
-    products: filteredAndSortedProducts,
+    products: paginatedData,
     loading,
     error,
     createProduct,
@@ -149,5 +151,9 @@ export function useProducts() {
     setShowOnlyLowStock,
     sortedBy,
     setSortedBy,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalProducts: filteredAndSortedProducts.length
   };
 }

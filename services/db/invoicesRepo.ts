@@ -1,45 +1,35 @@
 
 import { Invoice, InvoiceStatus, InvoiceId } from '../../types/invoice.ts';
 import { getNextInvoiceNumber, incrementInvoiceNumber } from '../../utils/numbering.ts';
-import { readJSON, writeJSON } from '../../utils/storage.ts';
+import { createRepository } from './repository.ts';
 
-const STORAGE_OPTIONS = { key: 'invoices_v1', version: 'v1' as const };
-let invoices: Invoice[] = readJSON(STORAGE_OPTIONS, []);
-
-const persist = () => {
-    writeJSON(STORAGE_OPTIONS, invoices);
-};
-
-const findInvoice = (id: InvoiceId) => {
-    const invoice = invoices.find(inv => inv.id === id);
-    if (!invoice) throw new Error(`Invoice with id ${id} not found`);
-    return invoice;
-};
+const repo = createRepository<Invoice>('invoices_v1');
 
 // --- Public API ---
 
-export const list = async (): Promise<Invoice[]> => {
-    return Promise.resolve([...invoices]);
+export const list = repo.list;
+export const getById = repo.getById;
+export const remove = async (id: InvoiceId) => {
+    const invoice = await getById(id);
+    if (!invoice || invoice.status !== 'BORRADOR') {
+        throw new Error("Only draft invoices can be removed.");
+    }
+    await repo.remove(id);
 };
 
 export const listByClient = async (clientId: string): Promise<Invoice[]> => {
-    const clientInvoices = invoices.filter(inv => inv.clientId === clientId);
-    return Promise.resolve(clientInvoices);
-};
-
-export const getById = async (id: InvoiceId): Promise<Invoice | null> => {
-    return Promise.resolve(invoices.find(inv => inv.id === id) || null);
+    const allInvoices = await repo.list();
+    return allInvoices.filter(inv => inv.clientId === clientId);
 };
 
 export const create = async (
     draftData: Partial<Omit<Invoice, 'id'|'createdAt'|'updatedAt'|'number'|'status'>>
 ): Promise<Invoice> => {
     const pos = draftData.pos || '0001';
-    const newInvoice: Invoice = {
-        id: crypto.randomUUID(),
+    const invoiceData = {
         type: draftData.type || 'B',
         concept: draftData.concept || 'PRODUCTOS',
-        pos: pos,
+        pos,
         number: getNextInvoiceNumber(pos), // Preview number
         clientId: draftData.clientId || '',
         clientName: draftData.clientName || '',
@@ -48,36 +38,30 @@ export const create = async (
         items: draftData.items || [],
         totals: draftData.totals || { netARS: 0, ivaARS: 0, totalARS: 0 },
         paymentMethod: draftData.paymentMethod || 'EFECTIVO',
-        status: 'BORRADOR',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        status: 'BORRADOR' as InvoiceStatus,
+        cae: undefined,
+        caeDue: undefined,
     };
-    invoices.push(newInvoice);
-    persist();
-    return Promise.resolve(newInvoice);
+    return repo.create(invoiceData);
 };
 
 export const update = async (id: InvoiceId, patch: Partial<Invoice>): Promise<Invoice> => {
-    const invoice = findInvoice(id);
-    if (invoice.status !== 'BORRADOR') {
+    const invoice = await getById(id);
+    if (!invoice || invoice.status !== 'BORRADOR') {
         throw new Error("Only draft invoices can be updated.");
     }
-    const updatedInvoice = { ...invoice, ...patch, updatedAt: new Date().toISOString() };
-    invoices = invoices.map(inv => inv.id === id ? updatedInvoice : inv);
-    persist();
-    return Promise.resolve(updatedInvoice);
+    return repo.update(id, patch);
 };
 
 export const issue = async (finalDraftData: Invoice): Promise<Invoice> => {
-    const invoiceToIssue = findInvoice(finalDraftData.id); // verify it exists
-    if (invoiceToIssue.status !== 'BORRADOR') {
+    const invoiceToIssue = await getById(finalDraftData.id);
+    if (!invoiceToIssue || invoiceToIssue.status !== 'BORRADOR') {
         throw new Error('Only draft invoices can be issued.');
     }
 
-    const issuedInvoice: Invoice = {
+    const issuedInvoiceData = {
         ...finalDraftData,
-        id: invoiceToIssue.id, // Keep original ID
-        status: 'EMITIDA',
+        status: 'EMITIDA' as InvoiceStatus,
         number: incrementInvoiceNumber(finalDraftData.pos),
         cae: Date.now().toString() + Math.floor(Math.random() * 100),
         caeDue: (() => {
@@ -85,40 +69,20 @@ export const issue = async (finalDraftData: Invoice): Promise<Invoice> => {
             d.setDate(d.getDate() + 7);
             return d.toISOString();
         })(),
-        updatedAt: new Date().toISOString(),
-        createdAt: invoiceToIssue.createdAt, // Keep original creation date
     };
 
-    invoices = invoices.map(inv => (inv.id === issuedInvoice.id ? issuedInvoice : inv));
-    persist();
-    return Promise.resolve(issuedInvoice);
+    return repo.update(finalDraftData.id, issuedInvoiceData);
 };
 
 
 export const setStatus = async (id: InvoiceId, status: InvoiceStatus): Promise<Invoice> => {
-    const invoice = findInvoice(id);
-    
     if (status === 'EMITIDA') {
         throw new Error("Internal error: Use the `issue` function to set status to EMITIDA.");
     }
-    
-    const updatedInvoice = { ...invoice, status, updatedAt: new Date().toISOString() };
-    invoices = invoices.map(inv => inv.id === id ? updatedInvoice : inv);
-    persist();
-    return Promise.resolve(updatedInvoice);
-};
-
-
-export const remove = async (id: InvoiceId): Promise<void> => {
-    const invoice = findInvoice(id);
-    if (invoice.status !== 'BORRADOR') {
-        throw new Error("Only draft invoices can be removed.");
-    }
-    invoices = invoices.filter(inv => inv.id !== id);
-    persist();
-    return Promise.resolve();
+    return repo.update(id, { status });
 };
 
 export const hasInvoicesForClient = async (clientId: string): Promise<boolean> => {
-    return Promise.resolve(invoices.some(inv => inv.clientId === clientId));
+    const allInvoices = await repo.list();
+    return allInvoices.some(inv => inv.clientId === clientId);
 };

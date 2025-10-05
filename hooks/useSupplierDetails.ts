@@ -1,10 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as suppliersRepo from '../services/db/suppliersRepo';
 import * as purchasesRepo from '../services/db/purchasesRepo';
 import * as supplierPaymentsRepo from '../services/db/supplierPaymentsRepo';
-import { Supplier } from '../types/supplier';
-import { Purchase } from '../types/purchase';
-import { SupplierPayment } from '../types/supplierPayment';
+import { Supplier, Purchase, SupplierPayment } from '../types';
+import { useSupplierDetailCalculations } from './useAccountCalculations';
 
 export type SupplierHistoryItem = 
     | { type: 'PURCHASE'; date: string; data: Purchase }
@@ -56,7 +55,8 @@ export function useSupplierDetails(supplierId: string) {
         }
     }, [supplierId, fetchData]);
 
-    const addPayment = useCallback(async (data: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId'>) => {
+    // FIX: Corrected the Omit type to not require `updatedAt`, which is handled by the repository.
+    const addPayment = useCallback(async (data: Omit<SupplierPayment, 'id' | 'createdAt' | 'updatedAt' | 'supplierId'>) => {
         if (!supplierId) return;
         try {
             await supplierPaymentsRepo.create({ ...data, supplierId });
@@ -78,22 +78,7 @@ export function useSupplierDetails(supplierId: string) {
         }
     }, [supplier, supplierId, fetchData]);
 
-    const { debt, history } = useMemo(() => {
-        const totalPurchased = purchases.reduce((sum, p) => sum + p.totalAmountARS, 0);
-        const totalPaid = payments.reduce((sum, p) => sum + p.amountARS, 0);
-        const debt = totalPurchased - totalPaid;
-
-        const purchaseHistory: SupplierHistoryItem[] = purchases
-            .map(p => ({ type: 'PURCHASE', date: p.date, data: p }));
-
-        const paymentHistory: SupplierHistoryItem[] = payments
-            .map(p => ({ type: 'PAYMENT', date: p.date, data: p }));
-
-        const history = [...purchaseHistory, ...paymentHistory]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        return { debt, history };
-    }, [purchases, payments]);
+    const { debt, history } = useSupplierDetailCalculations(purchases, payments);
 
     return { supplier, debt, history, loading, error, addPurchase, addPayment, updateSupplier };
 }

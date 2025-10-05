@@ -1,8 +1,7 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import * as invoicesRepo from '../services/db/invoicesRepo.ts';
 import * as productsRepo from '../services/db/productsRepo.ts';
-import { Invoice } from '../types/invoice.ts';
+import { Invoice } from '../types';
 import { sumTotals } from '../utils/tax.ts';
 import { onStorageChange } from '../utils/storage.ts';
 

@@ -1,6 +1,4 @@
-
 import React, { useState, useCallback } from 'react';
-// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
 import { useClientDetails } from '../hooks/useClientDetails';
 import { formatARS } from '../utils/format';
@@ -8,26 +6,24 @@ import ClientHistoryTable from '../components/clients/ClientHistoryTable';
 import { PaymentModal } from '../components/clients/PaymentModal';
 import { DebtModal } from '../components/clients/DebtModal';
 import { ClientForm } from '../components/clients/ClientForm';
-import { Payment } from '../types/payment';
-import { Client } from '../types/client';
-import { AccountAdjustment } from '../types/adjustment';
+import { Payment, Client, AccountAdjustment } from '../types';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
+import { DetailHeader } from '../components/shared/DetailHeader.tsx';
 
 export const ClientDetail: React.FC = () => {
     const { clientId } = Router.useParams<{ clientId: string }>();
-    const navigate = Router.useNavigate();
     const { client, debt, history, loading, error, addPayment, updateClient, addAdjustment } = useClientDetails(clientId!);
     
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [isDebtModalOpen, setDebtModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(!clientId);
 
-    const handleSavePayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId'>) => {
+    const handleSavePayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => {
         await addPayment(paymentData);
         setPaymentModalOpen(false);
     }, [addPayment]);
 
-    const handleSaveAdjustment = useCallback(async (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId'>) => {
+    const handleSaveAdjustment = useCallback(async (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => {
         await addAdjustment(adjustmentData);
     }, [addAdjustment]);
 
@@ -50,30 +46,18 @@ export const ClientDetail: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <header className="mb-8">
-                    <Router.Link to="/clientes" className="inline-block mb-4">
-                        <button className="flex items-center text-base font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-4 py-2 hover:bg-slate-50 shadow-sm transition-all">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                            </svg>
-                            Volver a Clientes
-                        </button>
-                    </Router.Link>
-                    
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start">
-                        <div>
-                            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">{client.name}</h1>
-                            <p className="text-base text-slate-700 mt-1">{client.docType}: {client.docNumber}</p>
-                            <p className="text-base text-slate-700">{client.email}</p>
-                        </div>
-                        <div className="text-left md:text-right mt-4 md:mt-0">
-                            <p className="text-base text-slate-700">Deuda Total</p>
-                            <p className={`text-3xl sm:text-4xl font-bold ${debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatARS(debt)}
-                            </p>
-                        </div>
-                    </div>
-                </header>
+                <DetailHeader
+                    backTo="/clientes"
+                    backToText="Volver a Clientes"
+                    title={client.name}
+                    subtitle={`${client.docType}: ${client.docNumber}`}
+                    email={client.email}
+                >
+                    <p className="text-base text-slate-700">Deuda Total</p>
+                    <p className={`text-3xl sm:text-4xl font-bold ${debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {formatARS(debt)}
+                    </p>
+                </DetailHeader>
 
                 <main>
                     {isEditing ? (

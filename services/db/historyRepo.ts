@@ -1,38 +1,24 @@
+import { StockMovement } from '../types';
+import { createRepository } from './repository.ts';
 
-import { StockMovement } from '../../types/history.ts';
-import { readJSON, writeJSON } from '../../utils/storage.ts';
+const repo = createRepository<StockMovement>('stock_history_v1');
 
-const STORAGE_OPTIONS = { key: 'stock_history_v1', version: 'v1' as const };
+export const list = repo.list;
 
-let history: StockMovement[] = readJSON(STORAGE_OPTIONS, []);
-
-const persist = () => {
-    writeJSON(STORAGE_OPTIONS, history);
-};
-
-// --- Public API ---
-
-export const list = async (): Promise<StockMovement[]> => {
-    return Promise.resolve([...history]);
-};
-
-export const add = async (movementData: Omit<StockMovement, 'id' | 'timestamp'>): Promise<StockMovement> => {
-    const newMovement: StockMovement = {
-        id: crypto.randomUUID(),
-        timestamp: new Date().toISOString(),
+export const add = async (movementData: Omit<StockMovement, 'id' | 'createdAt' | 'updatedAt' | 'timestamp'>): Promise<StockMovement> => {
+    const dataWithTimestamp = {
         ...movementData,
+        timestamp: new Date().toISOString(),
     };
-    history.push(newMovement);
-    persist();
-    return Promise.resolve(newMovement);
+    return repo.create(dataWithTimestamp);
 };
 
-// This is a specific utility for the import process to avoid double logging
 export const overwriteLast = async (patch: Partial<StockMovement>): Promise<void> => {
-    if (history.length > 0) {
-        const lastIndex = history.length - 1;
-        history[lastIndex] = { ...history[lastIndex], ...patch };
-        persist();
+    const collection = repo._getCollection();
+    if (collection.length > 0) {
+        const lastIndex = collection.length - 1;
+        collection[lastIndex] = { ...collection[lastIndex], ...patch, updatedAt: new Date().toISOString() };
+        repo._setCollection(collection);
+        repo._persist();
     }
-    return Promise.resolve();
 };

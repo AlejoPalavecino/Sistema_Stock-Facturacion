@@ -1,5 +1,3 @@
-
-
 import { ProductId } from './product';
 
 export type StockMovementType = 'creation' | 'manual_adjustment' | 'deletion' | 'import' | 'sale';
@@ -14,4 +12,6 @@ export interface StockMovement {
   change: number; // e.g., +50, -5
   newStock: number; // The resulting stock level
   notes?: string; // Optional context, e.g., "Imported from file.xlsx"
+  createdAt: string;
+  updatedAt: string;
 }

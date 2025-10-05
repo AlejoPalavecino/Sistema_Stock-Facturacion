@@ -1,12 +1,11 @@
-
 import React, { useState } from 'react';
-import { Modal } from '@/components/shared/Modal';
-import { Payment, PaymentMethod } from '@/types/payment';
+import { Modal } from '../shared/Modal';
+import { Payment, PaymentMethod } from '../../types';
 
 interface PaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId'>) => Promise<void>;
+    onSave: (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => Promise<void>;
 }
 
 export const PaymentModal: React.FC<PaymentModalProps> = ({ isOpen, onClose, onSave }) => {

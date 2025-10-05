@@ -1,36 +1,17 @@
+
 import { Purchase } from '../../types';
+import { createRepository } from './repository.ts';
 
-const STORAGE_KEY = 'purchases_v1';
-let purchases: Purchase[] = [];
+const repo = createRepository<Purchase>('purchases_v1');
 
-try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        purchases = JSON.parse(stored);
-    }
-} catch (error) {
-    console.error("Failed to load purchases from localStorage", error);
-}
-
-const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(purchases));
-};
-
-export const list = async (): Promise<Purchase[]> => Promise.resolve([...purchases]);
+export const list = repo.list;
 
 export const listBySupplier = async (supplierId: string): Promise<Purchase[]> => {
-    return Promise.resolve(purchases.filter(p => p.supplierId === supplierId));
+    const allPurchases = await repo.list();
+    return allPurchases.filter(p => p.supplierId === supplierId);
 };
 
 export const create = async (data: Omit<Purchase, 'id' | 'createdAt'>): Promise<Purchase> => {
     if (data.totalAmountARS <= 0) throw new Error("El monto de la compra debe ser positivo.");
-    
-    const newPurchase: Purchase = {
-        id: crypto.randomUUID(),
-        ...data,
-        createdAt: new Date().toISOString(),
-    };
-    purchases.push(newPurchase);
-    persist();
-    return Promise.resolve(newPurchase);
+    return repo.create(data);
 };

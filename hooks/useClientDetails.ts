@@ -1,14 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import * as clientsRepo from '../services/db/clientsRepo';
 import * as invoicesRepo from '../services/db/invoicesRepo';
 import * as paymentsRepo from '../services/db/paymentsRepo';
 import * as adjustmentsRepo from '../services/db/adjustmentsRepo';
-import { Client } from '../types/client';
-import { Invoice } from '../types/invoice';
-import { Payment } from '../types/payment';
-import { AccountAdjustment } from '../types/adjustment';
+import { Client, Invoice, Payment, AccountAdjustment } from '../types';
 import { onStorageChange } from '../utils/storage';
-import { type ClientHistoryItem } from '../components/clients/ClientHistoryTable';
+import { useClientDetailCalculations } from './useAccountCalculations';
 
 export function useClientDetails(clientId: string) {
     const [client, setClient] = useState<Client | null>(null);
@@ -51,7 +48,8 @@ export function useClientDetails(clientId: string) {
         return () => cleanups.forEach(cleanup => cleanup());
     }, [fetchData]);
 
-    const addPayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId'>) => {
+    // FIX: Corrected the Omit type to not require `updatedAt`, which is handled by the repository.
+    const addPayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'updatedAt' | 'clientId'>) => {
         if (!clientId) return;
         try {
             await paymentsRepo.create({ ...paymentData, clientId });
@@ -84,50 +82,7 @@ export function useClientDetails(clientId: string) {
         }
     }, [client, clientId, fetchData]);
 
-    const { debt, history } = useMemo(() => {
-        const totalInvoiced = invoices
-            .filter(inv => inv.status === 'EMITIDA')
-            .reduce((sum, inv) => sum + inv.totals.totalARS, 0);
-        
-        const totalPaid = payments.reduce((sum, p) => sum + p.amountARS, 0);
-
-        const totalAdjustments = adjustments.reduce((sum, adj) => {
-            return sum + (adj.type === 'DEBIT' ? adj.amountARS : -adj.amountARS);
-        }, 0);
-        
-        const debt = totalInvoiced - totalPaid + totalAdjustments;
-
-        const invoiceHistory: ClientHistoryItem[] = invoices
-            .filter(inv => inv.status === 'EMITIDA')
-            .map(inv => ({
-                type: 'FACTURA',
-                date: inv.createdAt,
-                amountARS: inv.totals.totalARS,
-                data: { id: inv.id, description: `Factura ${inv.pos}-${inv.number}` }
-            }));
-
-        const paymentHistory: ClientHistoryItem[] = payments
-            .map(p => ({
-                type: 'PAGO',
-                date: p.date,
-                amountARS: p.amountARS,
-                note: p.notes,
-                data: { id: p.id, description: `Pago recibido (${p.paymentMethod})` }
-            }));
-
-        const adjustmentHistory: ClientHistoryItem[] = adjustments
-            .map(adj => ({
-                type: 'AJUSTE',
-                date: adj.date,
-                amountARS: adj.amountARS,
-                data: { id: adj.id, description: `${adj.description} (${adj.type})` }
-            }));
-
-        const history: ClientHistoryItem[] = [...invoiceHistory, ...paymentHistory, ...adjustmentHistory]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-        return { debt, history };
-    }, [invoices, payments, adjustments]);
+    const { debt, history } = useClientDetailCalculations(invoices, payments, adjustments);
 
 
     return { client, debt, history, loading, error, addPayment, updateClient, addAdjustment };

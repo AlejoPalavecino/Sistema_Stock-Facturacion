@@ -1,5 +1,4 @@
-export type DocType = 'DNI' | 'CUIT' | 'CUIL' | 'SD';
-export type IvaCondition = 'RI' | 'MONOTRIBUTO' | 'CF';
+import { DocType, IvaCondition } from "./common";
 
 export interface Client {
   id: string;

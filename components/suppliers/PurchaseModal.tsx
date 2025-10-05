@@ -5,7 +5,7 @@ import { Purchase } from '../../types';
 interface PurchaseModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (purchaseData: Omit<Purchase, 'id' | 'createdAt' | 'supplierId' | 'status'>) => Promise<void>;
+    onSave: (purchaseData: Omit<Purchase, 'id' | 'createdAt' | 'supplierId' | 'status' | 'updatedAt'>) => Promise<void>;
 }
 
 export const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onSave }) => {

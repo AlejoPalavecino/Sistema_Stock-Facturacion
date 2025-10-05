@@ -1,4 +1,5 @@
 
+
 /**
  * Formats a number as Argentine Peso currency.
  * @param n - The number to format.
@@ -9,17 +10,6 @@ export const formatARS = (n: number): string => {
     style: 'currency',
     currency: 'ARS',
   }).format(n);
-};
-
-/**
- * Clamps a number between a minimum and maximum value.
- * @param n - The number to clamp.
- * @param min - The minimum value.
- * @param max - The maximum value.
- * @returns The clamped number.
- */
-export const clamp = (n: number, min: number, max: number): number => {
-  return Math.max(min, Math.min(n, max));
 };
 
 /**

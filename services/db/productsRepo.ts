@@ -4,33 +4,14 @@ import { generarSKU } from '../../utils/sku.ts';
 import * as categoriesRepo from './categoriesRepo';
 import * as historyRepo from './historyRepo';
 import { StockMovementType } from '../../types/index.ts';
-import { readJSON, writeJSON } from '../../utils/storage.ts';
+import { createRepository } from './repository.ts';
 
-const STORAGE_OPTIONS = { key: 'products_v1', version: 'v1' as const };
-
-// This is a simplified in-memory store that syncs with localStorage.
-// We use a module-level variable to simulate a database.
-let products: Product[] = readJSON(STORAGE_OPTIONS, []);
-
-const persist = () => {
-    writeJSON(STORAGE_OPTIONS, products);
-};
-
-const findProduct = (id: ProductId) => {
-    const product = products.find(p => p.id === id);
-    if (!product) throw new Error(`Product with id ${id} not found`);
-    return product;
-};
+const repo = createRepository<Product>('products_v1');
 
 // --- Public API ---
 
-export const list = async (): Promise<Product[]> => {
-    return Promise.resolve([...products]);
-};
-
-export const getById = async (id: ProductId): Promise<Product | null> => {
-    return Promise.resolve(products.find(p => p.id === id) || null);
-};
+export const list = repo.list;
+export const getById = repo.getById;
 
 export const create = async (
     data: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'> & { sku?: string }
@@ -42,25 +23,21 @@ export const create = async (
     }
     
     let sku = data.sku || generarSKU(data.name, data.category);
-    while (products.some(p => p.sku === sku)) {
-        sku = generarSKU(data.name, data.category, true); // force retry with random suffix
+    const allProducts = await repo.list();
+    while (allProducts.some(p => p.sku === sku)) {
+        sku = generarSKU(data.name, data.category, true);
     }
 
-    const newProduct: Product = {
-        id: crypto.randomUUID(),
+    const productData = {
         ...data,
         sku,
         priceARS: Math.max(0, data.priceARS),
         stock: Math.max(0, data.stock),
         minStock: Math.max(0, data.minStock),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
     };
 
-    products.push(newProduct);
-    persist();
+    const newProduct = await repo.create(productData);
 
-    // Log history
     await historyRepo.add({
         productId: newProduct.id,
         productSku: newProduct.sku,
@@ -71,11 +48,13 @@ export const create = async (
         notes: 'Producto creado.'
     });
 
-    return Promise.resolve(newProduct);
+    return newProduct;
 };
 
 export const update = async (id: ProductId, patch: Partial<Omit<Product, 'id'>>): Promise<Product> => {
-    const product = findProduct(id);
+    const product = await getById(id);
+    if (!product) throw new Error(`Product with id ${id} not found`);
+
     const oldStock = product.stock;
     
     if (patch.category) {
@@ -85,17 +64,8 @@ export const update = async (id: ProductId, patch: Partial<Omit<Product, 'id'>>)
         }
     }
 
-    const updatedProduct = {
-        ...product,
-        ...patch,
-        id: product.id, // ensure id is not changed
-        updatedAt: new Date().toISOString(),
-    };
+    const updatedProduct = await repo.update(id, patch);
 
-    products = products.map(p => p.id === id ? updatedProduct : p);
-    persist();
-
-    // Log history only if stock changed
     if (patch.stock !== undefined && patch.stock !== oldStock) {
         await historyRepo.add({
             productId: updatedProduct.id,
@@ -108,16 +78,15 @@ export const update = async (id: ProductId, patch: Partial<Omit<Product, 'id'>>)
         });
     }
 
-    return Promise.resolve(updatedProduct);
+    return updatedProduct;
 };
 
 export const remove = async (id: ProductId): Promise<void> => {
-    const productToDelete = findProduct(id);
+    const productToDelete = await getById(id);
+    if (!productToDelete) throw new Error(`Product with id ${id} not found`);
     
-    products = products.filter(p => p.id !== id);
-    persist();
+    await repo.remove(id);
 
-    // Log history
     await historyRepo.add({
         productId: productToDelete.id,
         productSku: productToDelete.sku,
@@ -127,12 +96,12 @@ export const remove = async (id: ProductId): Promise<void> => {
         newStock: 0,
         notes: 'Producto eliminado.'
     });
-
-    return Promise.resolve();
 };
 
 export const adjustStock = async (id: ProductId, delta: number, type: StockMovementType, notes: string): Promise<Product> => {
-    const product = findProduct(id);
+    const product = await getById(id);
+    if (!product) throw new Error(`Product with id ${id} not found`);
+
     const oldStock = product.stock;
     const newStock = oldStock + delta;
 
@@ -140,9 +109,7 @@ export const adjustStock = async (id: ProductId, delta: number, type: StockMovem
         throw new Error(`Stock insuficiente para ${product.name}. Stock actual: ${oldStock}, se necesita: ${-delta}`);
     }
 
-    const updatedProduct = { ...product, stock: newStock, updatedAt: new Date().toISOString() };
-    products = products.map(p => p.id === id ? updatedProduct : p);
-    persist();
+    const updatedProduct = await repo.update(id, { stock: newStock });
     
     await historyRepo.add({
         productId: updatedProduct.id,
@@ -154,7 +121,7 @@ export const adjustStock = async (id: ProductId, delta: number, type: StockMovem
         notes: notes,
     });
 
-    return Promise.resolve(updatedProduct);
+    return updatedProduct;
 };
 
 
@@ -171,7 +138,6 @@ export const batchCreate = async (data: any[]): Promise<ProductImportResult> => 
             continue;
         }
 
-        // Normalize keys to handle case variations
         const normalizedItem: any = {};
         for (const key in item) {
             normalizedItem[key.toLowerCase()] = item[key];
@@ -179,25 +145,8 @@ export const batchCreate = async (data: any[]): Promise<ProductImportResult> => 
 
         const { name, category, pricears: priceARS, stock, minstock: minStock, sku, active } = normalizedItem;
 
-        // Validations
-        if (!name || typeof name !== 'string' || name.trim() === '') {
-            results.errors.push({ item, reason: 'El campo "name" es obligatorio y debe ser un texto.' });
-            continue;
-        }
-        if (!category || !validCategories.includes(category)) {
-            results.errors.push({ item, reason: `La "category" no es válida. Debe ser una de las categorías existentes.` });
-            continue;
-        }
-        if (typeof priceARS !== 'number' || priceARS < 0) {
-            results.errors.push({ item, reason: 'El "priceARS" debe ser un número no negativo.' });
-            continue;
-        }
-        if (typeof stock !== 'number' || !Number.isInteger(stock) || stock < 0) {
-            results.errors.push({ item, reason: 'El "stock" debe ser un número entero no negativo.' });
-            continue;
-        }
-        if (typeof minStock !== 'number' || !Number.isInteger(minStock) || minStock < 0) {
-            results.errors.push({ item, reason: 'El "minStock" debe ser un número entero no negativo.' });
+        if (!name || typeof name !== 'string' || !category || !validCategories.includes(category) || typeof priceARS !== 'number' || typeof stock !== 'number' || typeof minStock !== 'number') {
+            results.errors.push({ item, reason: 'Faltan campos obligatorios o tienen un formato incorrecto (name, category, priceARS, stock, minStock).' });
             continue;
         }
         
@@ -205,16 +154,13 @@ export const batchCreate = async (data: any[]): Promise<ProductImportResult> => 
             const productData = {
                 name: name.trim(),
                 category: category as Category,
-                priceARS: priceARS,
-                stock: stock,
-                minStock: minStock,
+                priceARS, stock, minStock,
                 sku: (sku && typeof sku === 'string') ? sku : undefined,
                 active: typeof active === 'boolean' ? active : true,
             };
 
-            const newProduct = await create(productData); // Use create to ensure SKU generation and single point of entry
+            await create(productData);
             
-            // Overwrite the history log from 'create' to be more specific
             await historyRepo.overwriteLast({
                 type: 'import',
                 notes: 'Importado desde archivo.'
@@ -222,7 +168,7 @@ export const batchCreate = async (data: any[]): Promise<ProductImportResult> => 
 
             results.successCount++;
         } catch (error) {
-            const reason = error instanceof Error ? error.message : 'Error desconocido al crear el producto.';
+            const reason = error instanceof Error ? error.message : 'Error desconocido.';
             results.errors.push({ item, reason });
         }
     }
@@ -231,16 +177,18 @@ export const batchCreate = async (data: any[]): Promise<ProductImportResult> => 
 };
 
 export const isCategoryInUse = async (categoryName: Category): Promise<boolean> => {
-    return Promise.resolve(products.some(p => p.category === categoryName));
+    const allProducts = await list();
+    return allProducts.some(p => p.category === categoryName);
 };
 
 export const updateCategoryName = async (oldName: Category, newName: Category): Promise<void> => {
-    products = products.map(p => {
+    const collection = repo._getCollection();
+    const updatedCollection = collection.map(p => {
         if (p.category === oldName) {
             return { ...p, category: newName, updatedAt: new Date().toISOString() };
         }
         return p;
     });
-    persist();
-    return Promise.resolve();
+    repo._setCollection(updatedCollection);
+    repo._persist();
 };

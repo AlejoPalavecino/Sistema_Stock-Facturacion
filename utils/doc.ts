@@ -1,14 +1,7 @@
-
-import { DocType } from '@/types/client';
-import { DocTypeSupplier } from '@/types/supplier';
+import { DocType } from '@/types';
 
 export const normalizeDocNumber = (s: string): string => {
   return (s || '').replace(/[^0-9]/g, '');
-};
-
-// New function
-export const normalizeCUIT = (s: string): string => {
-  return normalizeDocNumber(s);
 };
 
 export const isValidDNI = (n: string): boolean => {
@@ -57,22 +50,5 @@ export const validateDoc = (docType: DocType, n: string): { ok: boolean; message
        break;
   }
   
-  return { ok: true };
-};
-
-// New function
-export const validateSupplierDoc = (docType: DocTypeSupplier, cuit: string): { ok: boolean; message?: string } => {
-  if (docType === 'SD') {
-    return { ok: true };
-  }
-
-  const num = normalizeCUIT(cuit);
-  if (!num) {
-    return { ok: false, message: 'El CUIT es obligatorio.' };
-  }
-  if (!isValidCUIT(num)) {
-    return { ok: false, message: 'El CUIT es inválido.' };
-  }
-
   return { ok: true };
 };

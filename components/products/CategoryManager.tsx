@@ -1,4 +1,5 @@
 import React, { useState, memo } from 'react';
+import { EditIcon, DeleteIcon, SaveIcon, CancelIcon } from '../shared/Icons';
 
 interface CategoryManagerProps {
   categories: string[];
@@ -7,30 +8,6 @@ interface CategoryManagerProps {
   onDelete: (name: string) => Promise<void>;
   error: string | null;
 }
-
-const EditIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L15.232 5.232z" />
-    </svg>
-);
-
-const DeleteIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-    </svg>
-);
-
-const SaveIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-);
-
-const CancelIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-);
 
 export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categories, onAdd, onUpdate, onDelete, error }) => {
   const [newCategory, setNewCategory] = useState('');
@@ -107,10 +84,10 @@ export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categorie
                 ) : (
                   <>
                     <button onClick={() => handleStartEdit(cat)} className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Editar">
-                      <EditIcon />
+                      <EditIcon className="h-4 w-4" />
                     </button>
                     <button onClick={() => onDelete(cat)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Eliminar">
-                      <DeleteIcon />
+                      <DeleteIcon className="h-4 w-4" />
                     </button>
                   </>
                 )}

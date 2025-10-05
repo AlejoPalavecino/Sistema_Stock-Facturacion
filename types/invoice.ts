@@ -1,7 +1,4 @@
-
-import { PaymentMethod, IvaRate } from '@/types/common';
-// FIX: Re-export imported types so they are available to other modules importing from this file.
-export type { PaymentMethod, IvaRate };
+import { PaymentMethod, IvaRate, DocType } from './common';
 
 export type InvoiceId = string;
 export type InvoiceStatus = 'BORRADOR' | 'EMITIDA' | 'ANULADA';
@@ -32,7 +29,7 @@ export interface Invoice {
   number: string;           // Formatted correlative: '00000001'
   clientId: string;
   clientName: string;
-  clientDocType: 'DNI' | 'CUIT' | 'CUIL' | 'SD';
+  clientDocType: DocType;
   clientDocNumber: string;
   items: InvoiceItem[];
   totals: InvoiceTotals;

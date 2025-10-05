@@ -1,5 +1,4 @@
-import { PaymentMethod } from './payment';
-export { PaymentMethod };
+import { PaymentMethod } from './common';
 
 export type SupplierPaymentId = string;
 
@@ -11,4 +10,5 @@ export interface SupplierPayment {
   paymentMethod: PaymentMethod;
   notes?: string;
   createdAt: string; // ISO
+  updatedAt: string;
 }

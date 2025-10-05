@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Modal } from '../shared/Modal';
-import { AccountAdjustment, AdjustmentType } from '../../types/adjustment';
+import { AccountAdjustment, AdjustmentType } from '../../types';
 
 interface DebtModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId'>) => Promise<void>;
+    onSave: (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => Promise<void>;
 }
 
 export const DebtModal: React.FC<DebtModalProps> = ({ isOpen, onClose, onSave }) => {

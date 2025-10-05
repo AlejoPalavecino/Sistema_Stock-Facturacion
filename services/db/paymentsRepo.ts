@@ -1,31 +1,18 @@
 
 import { Payment } from '@/types/payment';
-import { readJSON, writeJSON } from '@/utils/storage';
+import { createRepository } from './repository.ts';
 
-const STORAGE_OPTIONS = { key: 'payments_v1', version: 'v1' as const };
-let payments: Payment[] = readJSON(STORAGE_OPTIONS, []);
+const repo = createRepository<Payment>('payments_v1');
 
-const persist = () => {
-    writeJSON(STORAGE_OPTIONS, payments);
-};
-
-export const list = async (): Promise<Payment[]> => {
-    return Promise.resolve([...payments]);
-};
+export const list = repo.list;
 
 export const listByClient = async (clientId: string): Promise<Payment[]> => {
-    const clientPayments = payments.filter(p => p.clientId === clientId);
-    return Promise.resolve(clientPayments);
+    const allPayments = await repo.list();
+    return allPayments.filter(p => p.clientId === clientId);
 };
 
-export const create = async (data: Omit<Payment, 'id' | 'createdAt'>): Promise<Payment> => {
+// FIX: Corrected the Omit type to not require `updatedAt`, which is handled by the repository.
+export const create = async (data: Omit<Payment, 'id' | 'createdAt' | 'updatedAt'>): Promise<Payment> => {
     if (data.amountARS <= 0) throw new Error("El monto del pago debe ser positivo.");
-    const newPayment: Payment = {
-        id: crypto.randomUUID(),
-        ...data,
-        createdAt: new Date().toISOString(),
-    };
-    payments.push(newPayment);
-    persist();
-    return Promise.resolve(newPayment);
+    return repo.create(data);
 };

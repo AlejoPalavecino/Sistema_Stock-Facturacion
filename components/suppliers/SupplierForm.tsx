@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect, memo } from 'react';
-import { Supplier, DocTypeSupplier, IvaCondition, PaymentTerms } from '../../types/supplier';
-import { validateSupplierDoc, normalizeCUIT } from '../../utils/doc';
+import { Supplier, IvaCondition, PaymentTerms, DocType } from '../../types';
+import { validateDoc, normalizeDocNumber } from '../../utils/doc';
 import { isValidCBU, normalizeCBU, normalizeAlias } from '../../utils/bank';
 
 interface SupplierFormProps {
@@ -47,7 +46,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
     const newErrors: Record<string, string> = {};
     if (!formData.businessName.trim()) newErrors.businessName = 'La Razón Social es obligatoria.';
     
-    const docValidation = validateSupplierDoc(formData.docType, formData.cuit);
+    const docValidation = validateDoc(formData.docType, formData.cuit);
     if (!docValidation.ok) newErrors.cuit = docValidation.message;
 
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
@@ -88,7 +87,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
   };
   
   const handleCuitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData(prev => ({ ...prev, cuit: normalizeCUIT(e.target.value) }));
+      setFormData(prev => ({ ...prev, cuit: normalizeDocNumber(e.target.value) }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -116,7 +115,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
           <div>
             <label htmlFor="docType" className={labelClasses}>Tipo Documento</label>
             <select id="docType" name="docType" className={formFieldClasses} value={formData.docType} onChange={handleChange}>
-              {(['CUIT', 'SD'] as DocTypeSupplier[]).map(t => <option key={t} value={t}>{t}</option>)}
+              {(['CUIT', 'SD'] as DocType[]).map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
           

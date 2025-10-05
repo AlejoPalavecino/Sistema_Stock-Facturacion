@@ -1,7 +1,9 @@
-
 import React, { useState, useMemo, memo } from 'react';
-import { Invoice, InvoiceStatus } from '@/types/invoice';
-import { formatARS } from '@/utils/format';
+import { Invoice, InvoiceStatus, StatusPillVariant } from '../../types';
+import { formatARS } from '../../utils/format';
+import { usePagination } from '../../hooks/usePagination';
+import { Pagination } from '../shared/Pagination';
+import { StatusPill } from '../shared/StatusPill';
 
 interface InvoiceListProps {
   invoices: Invoice[];
@@ -10,17 +12,10 @@ interface InvoiceListProps {
   onCancel: (id: string) => void;
 }
 
-const StatusPill: React.FC<{ status: InvoiceStatus }> = ({ status }) => {
-    const styles = {
-        BORRADOR: 'bg-yellow-100 text-yellow-800',
-        EMITIDA: 'bg-green-100 text-green-800',
-        ANULADA: 'bg-red-100 text-red-800',
-    };
-    return (
-        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status]}`}>
-            {status}
-        </span>
-    );
+const statusMap: Record<InvoiceStatus, { label: string; variant: StatusPillVariant }> = {
+    BORRADOR: { label: 'Borrador', variant: 'warning' },
+    EMITIDA: { label: 'Emitida', variant: 'success' },
+    ANULADA: { label: 'Anulada', variant: 'danger' },
 };
 
 export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit, onView, onCancel }) => {
@@ -38,6 +33,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
             })
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [invoices, statusFilter, searchQuery]);
+
+    const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination(filteredInvoices);
 
     return (
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
@@ -76,19 +73,23 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                         {filteredInvoices.length === 0 ? (
+                         {paginatedData.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="text-center py-10 text-slate-500 text-base">
                                     No se encontraron facturas.
                                 </td>
                             </tr>
                         ) : (
-                            filteredInvoices.map(inv => (
+                            paginatedData.map(inv => (
                                 <tr key={inv.id} className="hover:bg-slate-50 text-base">
                                     <td className="px-4 py-3 font-mono text-slate-700">{inv.pos}-{inv.number}</td>
                                     <td className="px-4 py-3 font-medium text-slate-800">{inv.clientName}</td>
                                     <td className="px-4 py-3 text-slate-600">{new Date(inv.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-4 py-3"><StatusPill status={inv.status} /></td>
+                                    <td className="px-4 py-3">
+                                        <StatusPill variant={statusMap[inv.status].variant}>
+                                            {statusMap[inv.status].label}
+                                        </StatusPill>
+                                    </td>
                                     <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatARS(inv.totals.totalARS)}</td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center justify-center gap-3">
@@ -112,6 +113,11 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
                     </tbody>
                 </table>
             </div>
+            <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
         </div>
     );
 });

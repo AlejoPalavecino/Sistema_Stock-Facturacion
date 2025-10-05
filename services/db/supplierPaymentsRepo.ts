@@ -1,36 +1,19 @@
+
+
 import { SupplierPayment } from '../../types';
+import { createRepository } from './repository.ts';
 
-const STORAGE_KEY = 'supplier_payments_v1';
-let payments: SupplierPayment[] = [];
+const repo = createRepository<SupplierPayment>('supplier_payments_v1');
 
-try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        payments = JSON.parse(stored);
-    }
-} catch (error) {
-    console.error("Failed to load supplier payments from localStorage", error);
-}
-
-const persist = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payments));
-};
-
-export const list = async (): Promise<SupplierPayment[]> => Promise.resolve([...payments]);
+export const list = repo.list;
 
 export const listBySupplier = async (supplierId: string): Promise<SupplierPayment[]> => {
-    return Promise.resolve(payments.filter(p => p.supplierId === supplierId));
+    const allPayments = await repo.list();
+    return allPayments.filter(p => p.supplierId === supplierId);
 };
 
-export const create = async (data: Omit<SupplierPayment, 'id' | 'createdAt'>): Promise<SupplierPayment> => {
+// FIX: Corrected the Omit type to not require `updatedAt`, which is handled by the repository.
+export const create = async (data: Omit<SupplierPayment, 'id' | 'createdAt' | 'updatedAt'>): Promise<SupplierPayment> => {
     if (data.amountARS <= 0) throw new Error("El monto del pago debe ser positivo.");
-    
-    const newPayment: SupplierPayment = {
-        id: crypto.randomUUID(),
-        ...data,
-        createdAt: new Date().toISOString(),
-    };
-    payments.push(newPayment);
-    persist();
-    return Promise.resolve(newPayment);
+    return repo.create(data);
 };

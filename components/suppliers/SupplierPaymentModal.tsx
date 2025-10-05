@@ -5,7 +5,7 @@ import { SupplierPayment, PaymentMethod } from '../../types';
 interface SupplierPaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSave: (paymentData: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId'>) => Promise<void>;
+    onSave: (paymentData: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId' | 'updatedAt'>) => Promise<void>;
 }
 
 export const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({ isOpen, onClose, onSave }) => {

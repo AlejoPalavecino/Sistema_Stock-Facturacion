@@ -1,33 +1,17 @@
-
 import React, { useState, useCallback } from 'react';
-// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
 import { useSuppliers } from '../hooks/useSuppliers.ts';
-import { Supplier, SupplierWithDebt } from '../types/supplier.ts';
+import { Supplier, SupplierImportRow } from '../types';
 import { SupplierTable } from '../components/suppliers/SupplierTable.tsx';
 import { SupplierForm } from '../components/suppliers/SupplierForm.tsx';
-import { EmptyState } from '../components/suppliers/EmptyState.tsx';
-import { SupplierImport } from '../components/suppliers/SupplierImport.tsx';
+import { EmptyState } from '../components/shared/EmptyState.tsx';
+import { ImportData } from '../components/shared/ImportData.tsx';
 import { Modal } from '../components/shared/Modal.tsx';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
-
-// Icons
-const PlusIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-);
-const ExportIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-  </svg>
-);
-const ImportIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-    </svg>
-);
-const SearchIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-);
+import { Pagination } from '../components/shared/Pagination.tsx';
+import { PageHeader } from '../components/shared/PageHeader.tsx';
+import { PlusIcon, ExportIcon, ImportIcon, EmptyTruckIcon } from '../components/shared/Icons.tsx';
+import { ActionBar } from '../components/shared/ActionBar.tsx';
 
 const Proveedores: React.FC = () => {
   const {
@@ -46,6 +30,10 @@ const Proveedores: React.FC = () => {
     setOnlyActive,
     sortBy,
     setSortBy,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalSuppliers
   } = useSuppliers();
 
   const [editingSupplier, setEditingSupplier] = useState<Supplier | 'new' | null>(null);
@@ -60,22 +48,10 @@ const Proveedores: React.FC = () => {
     setEditingSupplier(null);
   }, [editingSupplier, createSupplier, updateSupplier]);
 
-  const PageHeader = () => (
-    <header className="mb-8">
-      <Router.Link to="/" className="inline-block mb-2">
-        <button className="flex items-center text-base font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          Volver al Dashboard
-        </button>
-      </Router.Link>
-      <h1 className="text-4xl font-bold text-slate-900">Proveedores</h1>
-    </header>
-  );
-
   if (loading && !suppliers.length) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <PageHeader />
+        <PageHeader title="Proveedores" backTo="/" backToText="Volver al Dashboard" />
         <div className="flex justify-center items-center h-64">
             <LoadingSpinner />
         </div>
@@ -93,23 +69,22 @@ const Proveedores: React.FC = () => {
     }
     return (
         <>
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="flex items-center justify-center bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setEditingSupplier('new')}>
-                <PlusIcon /> Nuevo Proveedor
-              </button>
-              <button onClick={() => setImportModalOpen(true)} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                <ImportIcon /> Importar JSON
-              </button>
-              <button onClick={() => exportSuppliers('excel')} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-                <ExportIcon /> Exportar Excel
-              </button>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon /></div>
-              <input type="text" placeholder="Buscar por Razón Social o CUIT..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="block w-full pl-10 pr-3 py-2.5 text-base text-slate-900 border border-slate-300 rounded-lg bg-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
-            </div>
-          </div>
+          <ActionBar
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            searchPlaceholder="Buscar por Razón Social o CUIT..."
+          >
+            <button className="flex items-center justify-center bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setEditingSupplier('new')}>
+              <PlusIcon className="h-5 w-5 mr-2" /> Nuevo Proveedor
+            </button>
+            <button onClick={() => setImportModalOpen(true)} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+              <ImportIcon className="h-5 w-5 mr-2" /> Importar
+            </button>
+            <button onClick={() => exportSuppliers('excel')} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+              <ExportIcon className="h-5 w-5 mr-2" /> Exportar Excel
+            </button>
+          </ActionBar>
+
           <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4">
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2.5">
               <option value="businessName">Ordenar por Razón Social</option>
@@ -123,10 +98,22 @@ const Proveedores: React.FC = () => {
             </label>
           </div>
 
-        {suppliers.length > 0 ? (
+        {totalSuppliers > 0 ? (
+          <>
             <SupplierTable suppliers={suppliers} onEdit={setEditingSupplier} onToggleActive={deactivateSupplier} />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
         ) : (
-            <EmptyState onSeed={seedIfEmpty} />
+            <EmptyState
+                icon={<EmptyTruckIcon />}
+                title="No hay proveedores registrados"
+                description="Puedes crear un nuevo proveedor o cargar datos de prueba para empezar."
+                action={{ label: 'Cargar datos de prueba', onClick: seedIfEmpty }}
+            />
         )}
         </>
     );
@@ -135,13 +122,17 @@ const Proveedores: React.FC = () => {
   return (
     <div className="bg-slate-50 min-h-screen">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <PageHeader />
+        <PageHeader title="Proveedores" backTo="/" backToText="Volver al Dashboard" />
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
         {renderContent()}
       </div>
 
       <Modal isOpen={isImportModalOpen} onClose={() => setImportModalOpen(false)} title="Importar Proveedores">
-        <SupplierImport onImport={importSuppliers} onClose={() => setImportModalOpen(false)} />
+         <ImportData<SupplierImportRow>
+            onImport={importSuppliers}
+            onClose={() => setImportModalOpen(false)}
+            helpText="Cabeceras: businessName, cuit, ivaCondition, etc."
+        />
       </Modal>
     </div>
   );

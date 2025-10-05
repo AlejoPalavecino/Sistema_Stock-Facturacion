@@ -1,7 +1,4 @@
-
-import { PaymentMethod } from '@/types/common';
-// FIX: Re-export the imported PaymentMethod type.
-export type { PaymentMethod };
+import { PaymentMethod } from './common';
 
 export type PaymentId = string;
 
@@ -13,4 +10,5 @@ export interface Payment {
   paymentMethod: PaymentMethod;
   notes?: string;
   createdAt: string; // ISO date string for creation record
+  updatedAt: string;
 }

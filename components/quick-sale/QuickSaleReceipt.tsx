@@ -1,5 +1,5 @@
 import React from 'react';
-import { Product } from '../../types/product';
+import { Product } from '../../types';
 import { formatARS } from '../../utils/format';
 
 export interface QuickSaleItem extends Product {

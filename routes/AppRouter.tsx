@@ -14,20 +14,26 @@ const StockHistory = lazy(() => import('../pages/StockHistory.tsx'));
 const ClientDetail = lazy(() => import('../pages/ClientDetail.tsx').then(module => ({ default: module.ClientDetail })));
 const SupplierDetail = lazy(() => import('../pages/SupplierDetail.tsx').then(module => ({ default: module.SupplierDetail })));
 
+// Centralized route configuration for easier management and scalability
+const routeConfig = [
+  { path: '/', component: Dashboard },
+  { path: '/stock', component: Stock },
+  { path: '/stock/history', component: StockHistory },
+  { path: '/facturacion', component: Facturacion },
+  { path: '/clientes', component: Clientes },
+  { path: '/clientes/:clientId', component: ClientDetail },
+  { path: '/proveedores', component: Proveedores },
+  { path: '/proveedores/:supplierId', component: SupplierDetail },
+];
 
 const AppRouter: React.FC = () => {
   return (
     <Router.HashRouter>
       <Suspense fallback={<LoadingSpinner />}>
         <Router.Routes>
-          <Router.Route path="/" element={<Dashboard />} />
-          <Router.Route path="/stock" element={<Stock />} />
-          <Router.Route path="/stock/history" element={<StockHistory />} />
-          <Router.Route path="/facturacion" element={<Facturacion />} />
-          <Router.Route path="/clientes" element={<Clientes />} />
-          <Router.Route path="/clientes/:clientId" element={<ClientDetail />} />
-          <Router.Route path="/proveedores" element={<Proveedores />} />
-          <Router.Route path="/proveedores/:supplierId" element={<SupplierDetail />} />
+          {routeConfig.map(({ path, component: Component }) => (
+            <Router.Route key={path} path={path} element={<Component />} />
+          ))}
         </Router.Routes>
       </Suspense>
     </Router.HashRouter>

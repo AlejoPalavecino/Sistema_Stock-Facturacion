@@ -1,19 +1,14 @@
-
 import React, { memo } from 'react';
 // FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
-import { ClientWithDebt } from '../../types/client.ts';
+import { ClientWithDebt } from '../../types';
 import { formatARS } from '../../utils/format.ts';
+import { StatusPill } from '../shared/StatusPill.tsx';
 
 interface ClientTableProps {
   clients: ClientWithDebt[];
   onToggleActive: (id: string) => void;
 }
-
-const StatusPill: React.FC<{ active: boolean }> = ({ active }) => {
-    const pillClasses = active ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-600';
-    return <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${pillClasses}`}>{active ? 'Activo' : 'Inactivo'}</span>;
-};
 
 export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onToggleActive }) => {
   return (
@@ -37,7 +32,11 @@ export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onToggle
               <td className="px-6 py-4 text-slate-700">{client.docType} {client.docNumber}</td>
               <td className="px-6 py-4 text-slate-700">{client.ivaCondition}</td>
               <td className="px-6 py-4 text-slate-700">{client.email}</td>
-              <td className="px-6 py-4"><StatusPill active={client.active} /></td>
+              <td className="px-6 py-4">
+                <StatusPill variant={client.active ? 'success' : 'neutral'}>
+                    {client.active ? 'Activo' : 'Inactivo'}
+                </StatusPill>
+              </td>
               <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-red-600' : 'text-slate-800'}`}>{formatARS(client.debt)}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-4">

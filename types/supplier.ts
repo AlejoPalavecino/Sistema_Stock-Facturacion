@@ -1,5 +1,5 @@
-export type DocTypeSupplier = 'CUIT' | 'SD';
-export type IvaCondition = 'RI' | 'MONOTRIBUTO' | 'EXENTO' | 'CF';
+import { DocType, IvaCondition } from "./common";
+
 export type PaymentTerms = 'CONTADO' | 'CTA_CTE_15' | 'CTA_CTE_30' | 'CTA_CTE_60';
 
 export interface BankData {
@@ -11,7 +11,7 @@ export interface BankData {
 export interface Supplier {
   id: string;
   businessName: string;    // Razón social o nombre comercial (requerido)
-  docType: DocTypeSupplier;// 'CUIT' por defecto
+  docType: DocType;       // 'CUIT' o 'SD' son los valores típicos aquí
   cuit: string;            // requerido si docType='CUIT'
   ivaCondition: IvaCondition; // 'RI' por defecto
   email?: string;
@@ -35,7 +35,7 @@ export interface SupplierWithDebt extends Supplier {
 
 export type SupplierImportRow = Partial<{
     businessName: string;
-    docType: DocTypeSupplier;
+    docType: DocType;
     cuit: string;
     ivaCondition: IvaCondition;
     email: string;

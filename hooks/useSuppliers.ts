@@ -1,10 +1,11 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Supplier, SupplierWithDebt, SupplierImportRow, SupplierImportResult } from '../types/supplier';
+import { Supplier, SupplierWithDebt, SupplierImportRow, SupplierImportResult, Purchase, SupplierPayment } from '../types';
 import * as suppliersRepo from '../services/db/suppliersRepo';
 import * as purchasesRepo from '../services/db/purchasesRepo';
 import * as supplierPaymentsRepo from '../services/db/supplierPaymentsRepo';
 import { onStorageChange, downloadBlob } from '../utils/storage';
+import { usePagination } from './usePagination';
+import { useSuppliersWithDebtCalculator } from './useAccountCalculations';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
@@ -12,7 +13,10 @@ declare var XLSX: any;
 type SortableKeys = 'businessName' | 'cuit' | 'createdAt' | 'debt';
 
 export function useSuppliers() {
-  const [suppliers, setSuppliers] = useState<SupplierWithDebt[]>([]);
+  const [rawSuppliers, setRawSuppliers] = useState<Supplier[]>([]);
+  const [rawPurchases, setRawPurchases] = useState<Purchase[]>([]);
+  const [rawPayments, setRawPayments] = useState<SupplierPayment[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,26 +35,18 @@ export function useSuppliers() {
         supplierPaymentsRepo.list()
       ]);
 
-      const debtBySupplier = new Map<string, number>();
-      purchasesData.forEach(p => {
-          debtBySupplier.set(p.supplierId, (debtBySupplier.get(p.supplierId) || 0) + p.totalAmountARS);
-      });
-      paymentsData.forEach(p => {
-          debtBySupplier.set(p.supplierId, (debtBySupplier.get(p.supplierId) || 0) - p.amountARS);
-      });
-
-      const suppliersWithDebt = suppliersData.map(s => ({
-          ...s,
-          debt: debtBySupplier.get(s.id) || 0
-      }));
-
-      setSuppliers(suppliersWithDebt);
+      setRawSuppliers(suppliersData);
+      setRawPurchases(purchasesData);
+      setRawPayments(paymentsData);
+      
     } catch (err) {
       setError('No se pudieron cargar los proveedores.');
     } finally {
       setLoading(false);
     }
   }, []);
+  
+  const suppliersWithDebt = useSuppliersWithDebtCalculator(rawSuppliers, rawPurchases, rawPayments);
 
   useEffect(() => {
     fetchSuppliers();
@@ -85,7 +81,7 @@ export function useSuppliers() {
   }, [fetchSuppliers]);
 
   const filteredAndSortedSuppliers = useMemo(() => {
-    let result = [...suppliers];
+    let result = [...suppliersWithDebt];
     if (onlyActive) result = result.filter(s => s.active);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -99,10 +95,12 @@ export function useSuppliers() {
       return 0;
     });
     return result;
-  }, [suppliers, searchQuery, onlyActive, sortBy]);
+  }, [suppliersWithDebt, searchQuery, onlyActive, sortBy]);
+
+  const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<SupplierWithDebt>(filteredAndSortedSuppliers);
   
   const exportSuppliers = useCallback((format: 'json' | 'csv' | 'excel', onlyFiltered: boolean = true) => {
-    const dataToExport = onlyFiltered ? filteredAndSortedSuppliers : suppliers;
+    const dataToExport = onlyFiltered ? filteredAndSortedSuppliers : suppliersWithDebt;
 
     if (format === 'json') {
         const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
@@ -138,10 +136,10 @@ export function useSuppliers() {
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         downloadBlob(blob, 'proveedores_export.csv');
     }
-  }, [suppliers, filteredAndSortedSuppliers]);
+  }, [suppliersWithDebt, filteredAndSortedSuppliers]);
 
   return {
-    suppliers: filteredAndSortedSuppliers,
+    suppliers: paginatedData,
     loading,
     error,
     createSupplier,
@@ -156,5 +154,9 @@ export function useSuppliers() {
     setOnlyActive,
     sortBy,
     setSortBy,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalSuppliers: filteredAndSortedSuppliers.length
   };
 }

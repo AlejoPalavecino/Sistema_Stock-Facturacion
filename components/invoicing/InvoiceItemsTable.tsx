@@ -1,6 +1,5 @@
-
 import React, { memo } from 'react';
-import { InvoiceItem, IvaRate } from '../../types/invoice.ts';
+import { InvoiceItem, IvaRate } from '../../types';
 import { formatARS } from '../../utils/format.ts';
 
 interface InvoiceItemsTableProps {

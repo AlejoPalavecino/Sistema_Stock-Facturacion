@@ -1,11 +1,12 @@
-
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Client, ClientImportRow, ClientImportResult, ClientWithDebt } from '../types/client.ts';
+import { Client, ClientImportRow, ClientImportResult, ClientWithDebt, Invoice, Payment, AccountAdjustment } from '../types';
 import * as clientsRepo from '../services/db/clientsRepo.ts';
 import * as invoicesRepo from '../services/db/invoicesRepo.ts';
 import * as paymentsRepo from '../services/db/paymentsRepo.ts';
 import * as adjustmentsRepo from '../services/db/adjustmentsRepo.ts';
 import { onStorageChange, downloadBlob } from '../utils/storage.ts';
+import { usePagination } from './usePagination.ts';
+import { useClientsWithDebtCalculator } from './useAccountCalculations.ts';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
@@ -13,7 +14,11 @@ declare var XLSX: any;
 type SortableKeys = 'name' | 'docNumber' | 'createdAt' | 'debt';
 
 export function useClients() {
-  const [clientsWithDebt, setClientsWithDebt] = useState<ClientWithDebt[]>([]);
+  const [rawClients, setRawClients] = useState<Client[]>([]);
+  const [rawInvoices, setRawInvoices] = useState<Invoice[]>([]);
+  const [rawPayments, setRawPayments] = useState<Payment[]>([]);
+  const [rawAdjustments, setRawAdjustments] = useState<AccountAdjustment[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,33 +37,11 @@ export function useClients() {
           adjustmentsRepo.list()
       ]);
       
-      const paymentsByClient = new Map<string, number>();
-      for (const payment of paymentsData) {
-          paymentsByClient.set(payment.clientId, (paymentsByClient.get(payment.clientId) || 0) + payment.amountARS);
-      }
-
-      const debtByClient = new Map<string, number>();
-      for (const invoice of invoicesData) {
-          if (invoice.status === 'EMITIDA') {
-            debtByClient.set(invoice.clientId, (debtByClient.get(invoice.clientId) || 0) + invoice.totals.totalARS);
-          }
-      }
+      setRawClients(clientsData);
+      setRawInvoices(invoicesData);
+      setRawPayments(paymentsData);
+      setRawAdjustments(adjustmentsData);
       
-      const adjustmentsByClient = new Map<string, number>();
-      for (const adj of adjustmentsData) {
-          const amount = adj.type === 'DEBIT' ? adj.amountARS : -adj.amountARS;
-          adjustmentsByClient.set(adj.clientId, (adjustmentsByClient.get(adj.clientId) || 0) + amount);
-      }
-
-
-      const clientsWithDebtData = clientsData.map(client => {
-          const totalInvoiced = debtByClient.get(client.id) || 0;
-          const totalPaid = paymentsByClient.get(client.id) || 0;
-          const totalAdjustments = adjustmentsByClient.get(client.id) || 0;
-          return { ...client, debt: totalInvoiced - totalPaid + totalAdjustments };
-      });
-
-      setClientsWithDebt(clientsWithDebtData);
       setError(null);
     } catch (err) {
       setError('No se pudieron cargar los clientes.');
@@ -66,6 +49,8 @@ export function useClients() {
       setLoading(false);
     }
   }, []);
+  
+  const clientsWithDebt = useClientsWithDebtCalculator(rawClients, rawInvoices, rawPayments, rawAdjustments);
 
   useEffect(() => {
     fetchClients();
@@ -78,6 +63,7 @@ export function useClients() {
       try {
           setError(null);
           await action();
+          // Data will be re-fetched by the storage listener, but we can force it for immediate feedback
           await fetchClients();
       } catch (err) {
           setError(err instanceof Error ? err.message : 'Ocurrió un error inesperado.');
@@ -134,6 +120,8 @@ export function useClients() {
     return result;
   }, [clientsWithDebt, searchQuery, onlyActive, sortBy]);
 
+  const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<ClientWithDebt>(filteredAndSortedClients);
+
   const exportClients = useCallback((format: 'json' | 'csv' | 'excel', onlyFiltered: boolean = true) => {
     const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
     // remove debt from export, as it's a calculated field
@@ -164,7 +152,7 @@ export function useClients() {
 
 
   return {
-    clients: filteredAndSortedClients,
+    clients: paginatedData,
     loading,
     error,
     createClient,
@@ -179,5 +167,9 @@ export function useClients() {
     setOnlyActive,
     sortBy,
     setSortBy,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    totalClients: filteredAndSortedClients.length
   };
 }

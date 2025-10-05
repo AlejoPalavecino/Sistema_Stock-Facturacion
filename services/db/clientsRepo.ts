@@ -1,54 +1,30 @@
 
-import { Client, DocType, ClientImportRow, IvaCondition } from '../../types/client.ts';
+
+// FIX: Changed import to use the barrel file `../../types` which correctly exports all needed types.
+import { Client, DocType, ClientImportRow, IvaCondition, ClientImportResult } from '../../types';
 import { normalizeDocNumber, validateDoc } from '../../utils/doc.ts';
-import * as invoicesRepo from './invoicesRepo';
-import { readJSON, writeJSON } from '../../utils/storage.ts';
+import { createRepository } from './repository.ts';
 
-const STORAGE_OPTIONS = { key: 'clients_v1', version: 'v1' as const };
+const seedData = (): Omit<Client, 'id' | 'createdAt' | 'updatedAt'>[] => [
+    { name: 'Juan Pérez', docType: 'DNI', docNumber: '30123456', ivaCondition: 'CF', active: true, email: 'juan.perez@example.com', phone: '1122334455', address: 'Av. Corrientes 1234, CABA' },
+    { name: 'Librería San Martín SRL', docType: 'CUIT', docNumber: '30712345678', ivaCondition: 'RI', active: true, email: 'compras@libreriasm.com', phone: '1198765432', address: 'Florida 500, CABA' },
+    { name: 'María Gómez', docType: 'DNI', docNumber: '28333444', ivaCondition: 'MONOTRIBUTO', active: false, email: 'maria.gomez@example.com', phone: '1133445566', address: '' },
+];
 
-// FIX: Explicitly set the return type to Client[] to ensure type safety.
-// This prevents TypeScript from inferring 'docType' and 'ivaCondition' as generic strings.
-const seedData = (): Client[] => {
-    return [
-        { id: crypto.randomUUID(), name: 'Juan Pérez', docType: 'DNI', docNumber: '30123456', ivaCondition: 'CF', active: true, email: 'juan.perez@example.com', phone: '1122334455', address: 'Av. Corrientes 1234, CABA', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: crypto.randomUUID(), name: 'Librería San Martín SRL', docType: 'CUIT', docNumber: '30712345678', ivaCondition: 'RI', active: true, email: 'compras@libreriasm.com', phone: '1198765432', address: 'Florida 500, CABA', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-        { id: crypto.randomUUID(), name: 'María Gómez', docType: 'DNI', docNumber: '28333444', ivaCondition: 'MONOTRIBUTO', active: false, email: 'maria.gomez@example.com', phone: '1133445566', address: '', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    ];
-}
-
-let clients: Client[] = readJSON(STORAGE_OPTIONS, []);
-
-if (clients.length === 0) {
-    clients = seedData();
-}
-
-const persist = () => {
-    writeJSON(STORAGE_OPTIONS, clients);
-};
-
-const findClient = (id: string) => {
-    const client = clients.find(c => c.id === id);
-    if (!client) throw new Error(`Client with id ${id} not found`);
-    return client;
-};
+const repo = createRepository<Client>('clients_v1', () => {
+    // The generic repo handles UUID and timestamps
+    return seedData().map(c => ({
+        ...c,
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+    }));
+});
 
 // --- Public API ---
 
-export const list = async (): Promise<Client[]> => {
-    return Promise.resolve([...clients]);
-};
-
-export const getById = async (id: string): Promise<Client | null> => {
-    return Promise.resolve(clients.find(c => c.id === id) || null);
-};
-
-export const searchByNameOrDoc = async (query: string): Promise<Client[]> => {
-    const q = query.toLowerCase();
-    const results = clients.filter(c => 
-        c.name.toLowerCase().includes(q) || c.docNumber.includes(q)
-    );
-    return Promise.resolve(results);
-};
+export const list = repo.list;
+export const getById = repo.getById;
 
 export const create = async (data: Omit<Client, 'id'|'createdAt'|'updatedAt'>): Promise<Client> => {
     if (!data.name.trim()) throw new Error("El nombre es obligatorio.");
@@ -58,51 +34,40 @@ export const create = async (data: Omit<Client, 'id'|'createdAt'|'updatedAt'>): 
     if (!validation.ok) throw new Error(validation.message);
     
     if (data.docType !== 'SD' && normalizedDoc) {
-        const existing = clients.find(c => c.docType === data.docType && normalizeDocNumber(c.docNumber) === normalizedDoc);
+        const allClients = await repo.list();
+        const existing = allClients.find(c => c.docType === data.docType && normalizeDocNumber(c.docNumber) === normalizedDoc);
         if (existing) {
             throw new Error(`Ya existe un cliente con ${data.docType} ${data.docNumber}.`);
         }
     }
-
-    const newClient: Client = {
-        id: crypto.randomUUID(),
-        ...data,
-        docNumber: normalizedDoc,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    };
-    clients.push(newClient);
-    persist();
-    return Promise.resolve(newClient);
+    
+    return repo.create({ ...data, docNumber: normalizedDoc });
 };
 
 export const update = async (id: string, patch: Partial<Client>): Promise<Client> => {
-    const client = findClient(id);
-    const updatedClient = { ...client, ...patch, updatedAt: new Date().toISOString() };
-    
-    const normalizedDoc = normalizeDocNumber(updatedClient.docNumber);
-    const validation = validateDoc(updatedClient.docType, normalizedDoc);
+    const client = await getById(id);
+    if (!client) throw new Error(`Client with id ${id} not found.`);
+
+    const updatedData = { ...client, ...patch };
+    const normalizedDoc = normalizeDocNumber(updatedData.docNumber);
+    const validation = validateDoc(updatedData.docType, normalizedDoc);
     if (!validation.ok) throw new Error(validation.message);
 
-    if (updatedClient.docType !== 'SD' && normalizedDoc) {
-        const existing = clients.find(c => c.id !== id && c.docType === updatedClient.docType && normalizeDocNumber(c.docNumber) === normalizedDoc);
+    if (updatedData.docType !== 'SD' && normalizedDoc) {
+        const allClients = await repo.list();
+        const existing = allClients.find(c => c.id !== id && c.docType === updatedData.docType && normalizeDocNumber(c.docNumber) === normalizedDoc);
         if (existing) {
-            throw new Error(`Ya existe otro cliente con ${updatedClient.docType} ${updatedClient.docNumber}.`);
+            throw new Error(`Ya existe otro cliente con ${updatedData.docType} ${updatedData.docNumber}.`);
         }
     }
-    updatedClient.docNumber = normalizedDoc;
     
-    clients = clients.map(c => c.id === id ? updatedClient : c);
-    persist();
-    return Promise.resolve(updatedClient);
+    return repo.update(id, { ...patch, docNumber: normalizedDoc });
 };
 
 export const deactivate = async (id: string): Promise<Client> => {
-    const client = findClient(id);
-    const updatedClient = { ...client, active: !client.active, updatedAt: new Date().toISOString() };
-    clients = clients.map(c => c.id === id ? updatedClient : c);
-    persist();
-    return Promise.resolve(updatedClient);
+    const client = await getById(id);
+    if (!client) throw new Error(`Client with id ${id} not found.`);
+    return repo.update(id, { active: !client.active });
 };
 
 export const createQuick = async (
@@ -119,8 +84,8 @@ export const createQuick = async (
     });
 };
 
-export const batchCreate = async (data: ClientImportRow[]) => {
-    const result = { successCount: 0, errors: [] as { item: any; reason: string }[] };
+export const batchCreate = async (data: ClientImportRow[]): Promise<ClientImportResult> => {
+    const result: ClientImportResult = { successCount: 0, errors: [] };
 
     for(const row of data) {
         try {
@@ -145,9 +110,10 @@ export const batchCreate = async (data: ClientImportRow[]) => {
 };
 
 export const seedIfEmpty = async (): Promise<void> => {
-    if (clients.length === 0) {
-        clients = seedData();
-        persist();
+    const allClients = await repo.list();
+    if (allClients.length === 0) {
+        for (const clientData of seedData()) {
+            await repo.create(clientData);
+        }
     }
-    return Promise.resolve();
 };

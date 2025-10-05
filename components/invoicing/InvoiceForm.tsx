@@ -1,9 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useInvoices } from '../../hooks/useInvoices.ts';
-import { Invoice, InvoiceItem, PaymentMethod, InvoiceType, Concept, IvaRate } from '../../types/invoice.ts';
-import { Client } from '../../types/client.ts';
-import { Product } from '../../types/product.ts';
+import { Invoice, InvoiceItem, PaymentMethod, InvoiceType, Concept, IvaRate, Client, Product } from '../../types';
 import { ClientPicker } from './ClientPicker.tsx';
 import { ProductPicker } from './ProductPicker.tsx';
 import { InvoiceItemsTable } from './InvoiceItemsTable.tsx';

@@ -1,11 +1,10 @@
-
 import React from 'react';
-// FIX: Changed react-router-dom import to use namespace import to fix module resolution issues.
 import * as Router from 'react-router-dom';
 import { useStockHistory } from '../hooks/useStockHistory.ts';
 import { formatDateTime } from '../utils/format.ts';
-import { StockMovementType } from '../types/history.ts';
+import { StockMovementType } from '../types';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
+import { PageHeader } from '../components/shared/PageHeader.tsx';
 
 // FIX: Add 'sale' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {
@@ -19,24 +18,10 @@ const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: strin
 const StockHistory: React.FC = () => {
     const { history, loading, error } = useStockHistory();
 
-    const PageHeader = () => (
-        <header className="mb-8">
-            <Router.Link to="/stock" className="inline-block mb-2">
-                <button className="flex items-center text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg px-3 py-2 hover:bg-slate-50 shadow-sm transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Volver a Control de Stock
-                </button>
-            </Router.Link>
-            <h1 className="text-4xl font-bold text-slate-800">Historial de Movimientos de Stock</h1>
-        </header>
-    );
-
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader />
+                <PageHeader title="Historial de Movimientos" backTo="/stock" backToText="Volver a Stock" />
                 <div className="flex justify-center items-center h-64">
                     <LoadingSpinner />
                 </div>
@@ -47,7 +32,7 @@ const StockHistory: React.FC = () => {
     if (error) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader />
+                <PageHeader title="Historial de Movimientos" backTo="/stock" backToText="Volver a Stock" />
                 <p className="text-red-600">Error: {error}</p>
             </div>
         );
@@ -56,7 +41,7 @@ const StockHistory: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader />
+                <PageHeader title="Historial de Movimientos de Stock" backTo="/stock" backToText="Volver a Control de Stock" />
                 
                 <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
                     <table className="w-full text-sm text-left text-slate-500">

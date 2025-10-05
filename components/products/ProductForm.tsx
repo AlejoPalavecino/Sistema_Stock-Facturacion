@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, memo } from 'react';
-import { Product } from '../../types/product.ts';
+import { Product } from '../../types';
 
 interface ProductFormProps {
   productToEdit?: Product;
