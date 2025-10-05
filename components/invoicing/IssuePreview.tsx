@@ -30,6 +30,13 @@ export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
             <div className="mt-4 text-3xl sm:text-4xl font-bold inline-block border-2 border-black px-4 py-2">
               {invoice.type}
             </div>
+             {invoice.type === 'X' && (
+                <div className="mt-4">
+                    <p className="font-bold text-red-600 border-2 border-red-500 p-2 inline-block text-xs tracking-wider">
+                        DOCUMENTO NO VÁLIDO COMO COMPROBANTE FISCAL
+                    </p>
+                </div>
+            )}
           </div>
         </header>
 
@@ -38,6 +45,9 @@ export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
           <p><strong>Cliente:</strong> {invoice.clientName}</p>
           <p><strong>{invoice.clientDocType}:</strong> {invoice.clientDocNumber}</p>
           <p><strong>Condición frente al IVA:</strong> Consumidor Final</p>
+          {invoice.expediente && (
+            <p className="mt-2"><strong>Nº de Expediente:</strong> {invoice.expediente}</p>
+          )}
         </section>
 
         {/* Items Table */}
@@ -85,7 +95,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = memo(({ invoice }) => {
         </section>
 
         {/* Footer with CAE and QR */}
-        {invoice.status === 'EMITIDA' && invoice.cae && (
+        {(invoice.status === 'PAGADA' || invoice.status === 'PENDIENTE_PAGO') && invoice.cae && (
           <footer className="mt-12 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
             {/* QR Code Placeholder */}
             <div className="w-24 h-24 border-2 border-gray-300 flex items-center justify-center text-slate-400">

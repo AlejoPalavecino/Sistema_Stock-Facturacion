@@ -1,20 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal } from '../shared/Modal';
-import { SupplierPayment, PaymentMethod } from '../../types';
+import { SupplierPayment, PaymentMethod, Purchase } from '../../types';
+import * as supplierPaymentsRepo from '../../services/db/supplierPaymentsRepo';
+import { formatARS } from '../../utils/format';
 
 interface SupplierPaymentModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (paymentData: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId' | 'updatedAt'>) => Promise<void>;
+    purchase: Purchase;
 }
 
-export const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({ isOpen, onClose, onSave }) => {
+export const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({ isOpen, onClose, onSave, purchase }) => {
     const [amountARS, setAmountARS] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('TRANSFERENCIA');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [paidAmount, setPaidAmount] = useState(0);
+
+    useEffect(() => {
+        const calculateInitialAmount = async () => {
+            if (isOpen && purchase) {
+                const payments = await supplierPaymentsRepo.listByPurchase(purchase.id);
+                const totalPaid = payments.reduce((sum, p) => sum + p.amountARS, 0);
+                setPaidAmount(totalPaid);
+                const remaining = purchase.totalAmountARS - totalPaid;
+                setAmountARS(remaining > 0 ? remaining.toFixed(2) : '');
+                setNotes(`Pago Factura ${purchase.invoiceNumber}`);
+            }
+        };
+        calculateInitialAmount();
+    }, [isOpen, purchase]);
 
     const handleSubmit = async () => {
         const amount = parseFloat(amountARS);
@@ -22,19 +40,20 @@ export const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({ isOp
             setError("El monto debe ser un número positivo.");
             return;
         }
+         if (amount > purchase.totalAmountARS - paidAmount) {
+            setError("El monto del pago no puede superar el saldo pendiente.");
+            return;
+        }
         setError('');
         setIsSaving(true);
         try {
             await onSave({
+                purchaseId: purchase.id,
                 amountARS: amount,
                 date: new Date(date).toISOString(),
                 paymentMethod,
                 notes,
             });
-            // Reset form
-            setAmountARS('');
-            setNotes('');
-            setDate(new Date().toISOString().split('T')[0]);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Error al guardar el pago.");
         } finally {
@@ -42,11 +61,18 @@ export const SupplierPaymentModal: React.FC<SupplierPaymentModalProps> = ({ isOp
         }
     };
 
+    const remainingDebt = purchase.totalAmountARS - paidAmount;
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Registrar Pago a Proveedor">
+             <div className="bg-slate-100 p-3 rounded-lg mb-4 text-sm">
+                <p><strong>Factura:</strong> {purchase.invoiceNumber}</p>
+                <p><strong>Total Factura:</strong> {formatARS(purchase.totalAmountARS)}</p>
+                <p><strong>Saldo Pendiente:</strong> <span className="font-bold text-red-600">{formatARS(remainingDebt)}</span></p>
+            </div>
             <div className="space-y-4">
                 <div>
-                    <label className="block mb-1.5 text-sm font-medium text-slate-700">Monto (ARS)</label>
+                    <label className="block mb-1.5 text-sm font-medium text-slate-700">Monto a Pagar (ARS)</label>
                     <input type="number" value={amountARS} onChange={e => setAmountARS(e.target.value)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg" placeholder="0.00" />
                 </div>
                 <div>

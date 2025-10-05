@@ -10,15 +10,17 @@ interface InvoiceListProps {
   onEdit: (id: string) => void;
   onView: (id: string) => void;
   onCancel: (id: string) => void;
+  onMarkAsPaid: (id: string) => void;
 }
 
 const statusMap: Record<InvoiceStatus, { label: string; variant: StatusPillVariant }> = {
     BORRADOR: { label: 'Borrador', variant: 'warning' },
-    EMITIDA: { label: 'Emitida', variant: 'success' },
+    PENDIENTE_PAGO: { label: 'Pendiente', variant: 'info' },
+    PAGADA: { label: 'Pagada', variant: 'success' },
     ANULADA: { label: 'Anulada', variant: 'danger' },
 };
 
-export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit, onView, onCancel }) => {
+export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit, onView, onCancel, onMarkAsPaid }) => {
     const [statusFilter, setStatusFilter] = useState<InvoiceStatus | ''>('');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -29,7 +31,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
                 const q = searchQuery.toLowerCase();
                 return !q || 
                        inv.clientName.toLowerCase().includes(q) || 
-                       `${inv.pos}-${inv.number}`.includes(q);
+                       `${inv.pos}-${inv.number}`.includes(q) ||
+                       (inv.expediente && inv.expediente.toLowerCase().includes(q));
             })
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }, [invoices, statusFilter, searchQuery]);
@@ -43,7 +46,7 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
             <div className="flex flex-col md:flex-row gap-4 mb-4">
                 <input 
                     type="text" 
-                    placeholder="Buscar por cliente o número..."
+                    placeholder="Buscar por cliente, número o expediente..."
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-600 focus:ring-blue-500 focus:border-blue-500 flex-grow"
@@ -55,7 +58,8 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
                 >
                     <option value="">Todos los estados</option>
                     <option value="BORRADOR">Borrador</option>
-                    <option value="EMITIDA">Emitida</option>
+                    <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+                    <option value="PAGADA">Pagada</option>
                     <option value="ANULADA">Anulada</option>
                 </select>
             </div>
@@ -96,7 +100,14 @@ export const InvoiceList: React.FC<InvoiceListProps> = memo(({ invoices, onEdit,
                                             {inv.status === 'BORRADOR' && (
                                                 <button onClick={() => onEdit(inv.id)} className="font-medium text-blue-600 hover:underline text-base">Editar</button>
                                             )}
-                                            {inv.status === 'EMITIDA' && (
+                                            {inv.status === 'PENDIENTE_PAGO' && (
+                                                <>
+                                                    <button onClick={() => onMarkAsPaid(inv.id)} className="font-medium text-green-600 hover:underline text-base">Marcar Pagada</button>
+                                                    <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-base">Ver</button>
+                                                    <button onClick={() => onCancel(inv.id)} className="font-medium text-red-600 hover:underline text-base">Anular</button>
+                                                </>
+                                            )}
+                                            {inv.status === 'PAGADA' && (
                                                 <>
                                                     <button onClick={() => onView(inv.id)} className="font-medium text-blue-600 hover:underline text-base">Ver</button>
                                                     <button onClick={() => onCancel(inv.id)} className="font-medium text-red-600 hover:underline text-base">Anular</button>

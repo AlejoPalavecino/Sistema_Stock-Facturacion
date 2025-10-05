@@ -1,15 +1,12 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Client, ClientImportRow, ClientImportResult, ClientWithDebt, Invoice, Payment, AccountAdjustment } from '../types';
+import { Client, Invoice, Payment, AccountAdjustment, ClientWithDebt } from '../types';
 import * as clientsRepo from '../services/db/clientsRepo.ts';
 import * as invoicesRepo from '../services/db/invoicesRepo.ts';
 import * as paymentsRepo from '../services/db/paymentsRepo.ts';
 import * as adjustmentsRepo from '../services/db/adjustmentsRepo.ts';
-import { onStorageChange, downloadBlob } from '../utils/storage.ts';
+import { onStorageChange } from '../utils/storage.ts';
 import { usePagination } from './usePagination.ts';
 import { useClientsWithDebtCalculator } from './useAccountCalculations.ts';
-
-// For SheetJS global variable from CDN
-declare var XLSX: any;
 
 type SortableKeys = 'name' | 'docNumber' | 'createdAt' | 'debt';
 
@@ -24,7 +21,7 @@ export function useClients() {
 
   // Filters and sorting state
   const [searchQuery, setSearchQuery] = useState('');
-  const [onlyActive, setOnlyActive] = useState(true);
+  const [onlyWithDebt, setOnlyWithDebt] = useState(false);
   const [sortBy, setSortBy] = useState<SortableKeys>('name');
   
   const fetchClients = useCallback(async () => {
@@ -65,7 +62,8 @@ export function useClients() {
           await action();
           // Data will be re-fetched by the storage listener, but we can force it for immediate feedback
           await fetchClients();
-      } catch (err) {
+      } catch (err)
+ {
           setError(err instanceof Error ? err.message : 'Ocurrió un error inesperado.');
           throw err;
       }
@@ -74,32 +72,16 @@ export function useClients() {
   const createClient = useCallback(async (data: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     await handleRepoAction(() => clientsRepo.create(data));
   }, [handleRepoAction]);
-
-  const updateClient = useCallback(async (id: string, data: Partial<Client>) => {
-    await handleRepoAction(() => clientsRepo.update(id, data));
-  }, [handleRepoAction]);
-  
-  const deactivateClient = useCallback(async (id: string) => {
-      await handleRepoAction(() => clientsRepo.deactivate(id));
-  }, [handleRepoAction]);
   
   const seedIfEmpty = useCallback(async () => {
       await handleRepoAction(clientsRepo.seedIfEmpty);
   }, [handleRepoAction]);
-  
-  const importClients = useCallback(async (data: ClientImportRow[]): Promise<ClientImportResult> => {
-      const result = await clientsRepo.batchCreate(data);
-      if (result.successCount > 0) {
-          await fetchClients();
-      }
-      return result;
-  }, [fetchClients]);
 
   const filteredAndSortedClients = useMemo(() => {
-    let result = [...clientsWithDebt];
+    let result = [...clientsWithDebt].filter(c => c.active);
 
-    if (onlyActive) {
-      result = result.filter(c => c.active);
+    if (onlyWithDebt) {
+      result = result.filter(c => c.debt > 0);
     }
 
     if (searchQuery) {
@@ -118,53 +100,20 @@ export function useClients() {
     });
 
     return result;
-  }, [clientsWithDebt, searchQuery, onlyActive, sortBy]);
+  }, [clientsWithDebt, searchQuery, onlyWithDebt, sortBy]);
 
   const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<ClientWithDebt>(filteredAndSortedClients);
-
-  const exportClients = useCallback((format: 'json' | 'csv' | 'excel', onlyFiltered: boolean = true) => {
-    const dataToExport = onlyFiltered ? filteredAndSortedClients : clientsWithDebt;
-    // remove debt from export, as it's a calculated field
-    const clientsOnly = dataToExport.map(({debt, ...client}) => client);
-    
-    if (format === 'excel') {
-        const worksheet = XLSX.utils.json_to_sheet(clientsOnly);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Clientes");
-        XLSX.writeFile(workbook, "clientes_export.xlsx");
-        return;
-    }
-    
-    let blob: Blob;
-    if (format === 'json') {
-        blob = new Blob([JSON.stringify(clientsOnly, null, 2)], { type: 'application/json' });
-    } else { // csv
-        const headers = Object.keys(clientsOnly[0] || {}).join(',');
-        const rows = clientsOnly.map(client => 
-            Object.values(client).map(value => `"${String(value).replace(/"/g, '""')}"`).join(',')
-        );
-        const csvContent = `${headers}\n${rows.join('\n')}`;
-        blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    }
-
-    downloadBlob(blob, `clientes_export.${format}`);
-  }, [clientsWithDebt, filteredAndSortedClients]);
-
 
   return {
     clients: paginatedData,
     loading,
     error,
     createClient,
-    updateClient,
-    deactivateClient,
     seedIfEmpty,
-    importClients,
-    exportClients,
     searchQuery,
     setSearchQuery,
-    onlyActive,
-    setOnlyActive,
+    onlyWithDebt,
+    setOnlyWithDebt,
     sortBy,
     setSortBy,
     currentPage,

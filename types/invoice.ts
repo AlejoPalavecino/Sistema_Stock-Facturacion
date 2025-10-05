@@ -1,8 +1,8 @@
 import { PaymentMethod, IvaRate, DocType } from './common';
 
 export type InvoiceId = string;
-export type InvoiceStatus = 'BORRADOR' | 'EMITIDA' | 'ANULADA';
-export type InvoiceType = 'A' | 'B' | 'C';
+export type InvoiceStatus = 'BORRADOR' | 'PENDIENTE_PAGO' | 'PAGADA' | 'ANULADA';
+export type InvoiceType = 'A' | 'B' | 'C' | 'X';
 export type Concept = 'PRODUCTOS';
 
 export interface InvoiceItem {
@@ -27,6 +27,7 @@ export interface Invoice {
   concept: Concept;
   pos: string;              // Point of sale, e.g., '0001'
   number: string;           // Formatted correlative: '00000001'
+  expediente?: string;      // Optional case file number
   clientId: string;
   clientName: string;
   clientDocType: DocType;

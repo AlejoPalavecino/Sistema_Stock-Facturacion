@@ -2,26 +2,53 @@ import React, { useState, useCallback } from 'react';
 import * as Router from 'react-router-dom';
 import { useClientDetails } from '../hooks/useClientDetails';
 import { formatARS } from '../utils/format';
-import ClientHistoryTable from '../components/clients/ClientHistoryTable';
 import { PaymentModal } from '../components/clients/PaymentModal';
 import { DebtModal } from '../components/clients/DebtModal';
 import { ClientForm } from '../components/clients/ClientForm';
-import { Payment, Client, AccountAdjustment } from '../types';
+import { Payment, Client, AccountAdjustment, Invoice } from '../types';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { DetailHeader } from '../components/shared/DetailHeader.tsx';
+import { ClientInvoiceList } from '../components/clients/ClientInvoiceList.tsx';
+import { ViewChequeModal } from '../components/clients/ViewChequeModal.tsx';
+import { ManageChequesModal } from '../components/clients/ManageChequesModal.tsx';
 
 export const ClientDetail: React.FC = () => {
     const { clientId } = Router.useParams<{ clientId: string }>();
-    const { client, debt, history, loading, error, addPayment, updateClient, addAdjustment } = useClientDetails(clientId!);
+    const { client, debt, invoices, payments, loading, error, addPayment, updateClient, addAdjustment, confirmChequePayment, getPendingChequesForInvoice } = useClientDetails(clientId!);
     
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [invoiceToPay, setInvoiceToPay] = useState<Invoice | null>(null);
+    const [chequeToView, setChequeToView] = useState<Payment | null>(null);
     const [isDebtModalOpen, setDebtModalOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(!clientId);
+    const [isManageChequesModalOpen, setManageChequesModalOpen] = useState(false);
+    const [invoiceToManageCheques, setInvoiceToManageCheques] = useState<Invoice | null>(null);
+
+    const handleOpenPaymentModal = useCallback((invoice: Invoice) => {
+        setInvoiceToPay(invoice);
+        setPaymentModalOpen(true);
+    }, []);
+    
+    const handleOpenManageChequesModal = useCallback((invoice: Invoice) => {
+        setInvoiceToManageCheques(invoice);
+        setManageChequesModalOpen(true);
+    }, []);
 
     const handleSavePayment = useCallback(async (paymentData: Omit<Payment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => {
         await addPayment(paymentData);
         setPaymentModalOpen(false);
+        setInvoiceToPay(null);
     }, [addPayment]);
+
+    const handleViewCheque = useCallback((payment: Payment) => {
+        setChequeToView(payment);
+    }, []);
+
+    const handleConfirmCheque = useCallback(async (paymentId: string) => {
+        await confirmChequePayment(paymentId);
+        // If the management modal is open, we can close it upon confirmation, or leave it open
+        // Let's leave it open to allow confirming multiple cheques. The list inside will update.
+    }, [confirmChequePayment]);
 
     const handleSaveAdjustment = useCallback(async (adjustmentData: Omit<AccountAdjustment, 'id' | 'createdAt' | 'clientId' | 'updatedAt'>) => {
         await addAdjustment(adjustmentData);
@@ -48,7 +75,6 @@ export const ClientDetail: React.FC = () => {
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <DetailHeader
                     backTo="/clientes"
-                    backToText="Volver a Clientes"
                     title={client.name}
                     subtitle={`${client.docType}: ${client.docNumber}`}
                     email={client.email}
@@ -81,28 +107,48 @@ export const ClientDetail: React.FC = () => {
                                 >
                                     Registrar Deuda/Ajuste
                                 </button>
-                                <button
-                                    onClick={() => setPaymentModalOpen(true)}
-                                    className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700"
-                                >
-                                    Registrar Pago
-                                </button>
                             </div>
                             
                             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-                                <h2 className="text-2xl font-semibold text-slate-900 mb-4">Historial de Cuenta Corriente</h2>
-                                <ClientHistoryTable history={history} />
+                                <h2 className="text-2xl font-semibold text-slate-900 mb-4">Historial de Facturas</h2>
+                                <ClientInvoiceList 
+                                    invoices={invoices} 
+                                    getPendingChequesForInvoice={getPendingChequesForInvoice}
+                                    onPay={handleOpenPaymentModal}
+                                    onManageCheques={handleOpenManageChequesModal}
+                                />
                             </div>
                         </>
                     )}
                 </main>
             </div>
 
-            <PaymentModal
-                isOpen={isPaymentModalOpen}
-                onClose={() => setPaymentModalOpen(false)}
-                onSave={handleSavePayment}
-            />
+            {invoiceToPay && (
+                 <PaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setPaymentModalOpen(false)}
+                    onSave={handleSavePayment}
+                    invoice={invoiceToPay}
+                />
+            )}
+            
+            {invoiceToManageCheques && (
+                 <ManageChequesModal
+                    isOpen={isManageChequesModalOpen}
+                    onClose={() => setManageChequesModalOpen(false)}
+                    invoice={invoiceToManageCheques}
+                    pendingCheques={getPendingChequesForInvoice(invoiceToManageCheques.id)}
+                    onConfirmCheque={handleConfirmCheque}
+                />
+            )}
+
+            {chequeToView && (
+                <ViewChequeModal 
+                    isOpen={!!chequeToView}
+                    onClose={() => setChequeToView(null)}
+                    payment={chequeToView}
+                />
+            )}
             
             <DebtModal
                 isOpen={isDebtModalOpen}

@@ -1,6 +1,7 @@
 
+
 import { Invoice, InvoiceStatus, InvoiceId } from '../../types/invoice.ts';
-import { getNextInvoiceNumber, incrementInvoiceNumber } from '../../utils/numbering.ts';
+import { getNextInvoiceNumber, incrementInvoiceNumber, generateNextExpediente } from '../../utils/numbering.ts';
 import { createRepository } from './repository.ts';
 
 const repo = createRepository<Invoice>('invoices_v1');
@@ -31,6 +32,7 @@ export const create = async (
         concept: draftData.concept || 'PRODUCTOS',
         pos,
         number: getNextInvoiceNumber(pos), // Preview number
+        expediente: draftData.expediente !== undefined ? draftData.expediente : generateNextExpediente(),
         clientId: draftData.clientId || '',
         clientName: draftData.clientName || '',
         clientDocType: draftData.clientDocType || 'DNI',
@@ -58,26 +60,37 @@ export const issue = async (finalDraftData: Invoice): Promise<Invoice> => {
     if (!invoiceToIssue || invoiceToIssue.status !== 'BORRADOR') {
         throw new Error('Only draft invoices can be issued.');
     }
+    
+    const newStatus: InvoiceStatus = finalDraftData.paymentMethod === 'CTA_CTE' ? 'PENDIENTE_PAGO' : 'PAGADA';
+    const isArcaInvoice = ['A', 'B', 'C'].includes(finalDraftData.type);
 
     const issuedInvoiceData = {
         ...finalDraftData,
-        status: 'EMITIDA' as InvoiceStatus,
+        status: newStatus,
         number: incrementInvoiceNumber(finalDraftData.pos),
-        cae: Date.now().toString() + Math.floor(Math.random() * 100),
-        caeDue: (() => {
+        cae: isArcaInvoice ? Date.now().toString() + Math.floor(Math.random() * 100) : undefined,
+        caeDue: isArcaInvoice ? (() => {
             const d = new Date();
             d.setDate(d.getDate() + 7);
             return d.toISOString();
-        })(),
+        })() : undefined,
     };
 
     return repo.update(finalDraftData.id, issuedInvoiceData);
 };
 
+export const markAsPaid = async (id: InvoiceId): Promise<Invoice> => {
+    const invoice = await getById(id);
+    if (!invoice || invoice.status !== 'PENDIENTE_PAGO') {
+        throw new Error("Solo las facturas pendientes de pago se pueden marcar como pagadas.");
+    }
+    return repo.update(id, { status: 'PAGADA' });
+};
+
 
 export const setStatus = async (id: InvoiceId, status: InvoiceStatus): Promise<Invoice> => {
-    if (status === 'EMITIDA') {
-        throw new Error("Internal error: Use the `issue` function to set status to EMITIDA.");
+    if (status === 'PAGADA' || status === 'PENDIENTE_PAGO') {
+        throw new Error("Internal error: Use the `issue` or `markAsPaid` function to set issued statuses.");
     }
     return repo.update(id, { status });
 };

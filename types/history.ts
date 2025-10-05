@@ -1,6 +1,6 @@
 import { ProductId } from './product';
 
-export type StockMovementType = 'creation' | 'manual_adjustment' | 'deletion' | 'import' | 'sale';
+export type StockMovementType = 'creation' | 'manual_adjustment' | 'deletion' | 'import' | 'sale' | 'purchase';
 
 export interface StockMovement {
   id: string; // Unique ID for the movement

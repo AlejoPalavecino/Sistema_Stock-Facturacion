@@ -18,7 +18,7 @@ declare const jspdf: any;
 
 const Facturacion: React.FC = () => {
     const invoiceActions = useInvoices();
-    const { invoices, loading, error, createDraft, getById, cancelInvoice, exportInvoices } = invoiceActions;
+    const { invoices, loading, error, createDraft, getById, cancelInvoice, markInvoiceAsPaid, exportInvoices } = invoiceActions;
 
     const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
     const [viewingInvoice, setViewingInvoice] = useState<Invoice | null>(null);
@@ -137,7 +137,7 @@ const Facturacion: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader title="Facturación" backTo="/" backToText="Volver al Dashboard">
+                <PageHeader title="Facturación" backTo="/">
                     {!editingInvoiceId && (
                         <>
                             <button
@@ -171,6 +171,7 @@ const Facturacion: React.FC = () => {
                             onEdit={handleEditInvoice}
                             onView={handleViewInvoice}
                             onCancel={handleOpenCancelModal}
+                            onMarkAsPaid={markInvoiceAsPaid}
                         />
                     )}
                 </main>

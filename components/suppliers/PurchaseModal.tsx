@@ -10,6 +10,8 @@ interface PurchaseModalProps {
 
 export const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, onSave }) => {
     const [totalAmountARS, setTotalAmountARS] = useState('');
+    // FIX: Add state for invoiceNumber which is a required field.
+    const [invoiceNumber, setInvoiceNumber] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
@@ -21,16 +23,32 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, o
             setError("El monto debe ser un número positivo.");
             return;
         }
+        // FIX: Add validation for the new invoiceNumber field.
+        if (!invoiceNumber.trim()) {
+            setError("El número de factura del proveedor es obligatorio.");
+            return;
+        }
         setError('');
         setIsSaving(true);
         try {
+            // FIX: Construct a valid purchase object including invoiceNumber and items to match the expected type.
             await onSave({
+                invoiceNumber,
+                items: [{
+                    productId: 'quick-add',
+                    sku: 'N/A',
+                    name: `Compra: ${invoiceNumber}`,
+                    qty: 1,
+                    unitPriceARS: amount,
+                    lineTotalARS: amount,
+                }],
                 totalAmountARS: amount,
                 date: new Date(date).toISOString(),
                 notes,
             });
             // Reset form
             setTotalAmountARS('');
+            setInvoiceNumber('');
             setNotes('');
             setDate(new Date().toISOString().split('T')[0]);
         } catch (e) {
@@ -46,6 +64,11 @@ export const PurchaseModal: React.FC<PurchaseModalProps> = ({ isOpen, onClose, o
                 <div>
                     <label className="block mb-1.5 text-sm font-medium text-slate-700">Monto Total (ARS)</label>
                     <input type="number" value={totalAmountARS} onChange={e => setTotalAmountARS(e.target.value)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg" placeholder="0.00" />
+                </div>
+                {/* FIX: Add input field for invoiceNumber. */}
+                <div>
+                    <label className="block mb-1.5 text-sm font-medium text-slate-700">N° Factura Proveedor</label>
+                    <input type="text" value={invoiceNumber} onChange={e => setInvoiceNumber(e.target.value)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg" />
                 </div>
                 <div>
                     <label className="block mb-1.5 text-sm font-medium text-slate-700">Fecha de la Compra</label>

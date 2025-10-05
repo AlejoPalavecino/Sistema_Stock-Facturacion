@@ -2,30 +2,30 @@ import React, { useState, useCallback } from 'react';
 import * as Router from 'react-router-dom';
 import { useSupplierDetails } from '../hooks/useSupplierDetails';
 import { formatARS } from '../utils/format';
-import { SupplierHistoryTable } from '../components/suppliers/SupplierHistoryTable';
-import { PurchaseModal } from '../components/suppliers/PurchaseModal';
 import { SupplierPaymentModal } from '../components/suppliers/SupplierPaymentModal';
 import { SupplierForm } from '../components/suppliers/SupplierForm';
 import { Purchase, SupplierPayment, Supplier } from '../types';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner';
 import { DetailHeader } from '../components/shared/DetailHeader.tsx';
+import { PurchaseList } from '../components/suppliers/PurchaseList.tsx';
 
 export const SupplierDetail: React.FC = () => {
     const { supplierId } = Router.useParams<{ supplierId: string }>();
-    const { supplier, debt, history, loading, error, addPurchase, addPayment, updateSupplier } = useSupplierDetails(supplierId!);
+    const { supplier, debt, purchases, loading, error, addPayment, updateSupplier } = useSupplierDetails(supplierId!);
     
-    const [isPurchaseModalOpen, setPurchaseModalOpen] = useState(false);
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [purchaseToPay, setPurchaseToPay] = useState<Purchase | null>(null);
     const [isEditing, setIsEditing] = useState(false);
-
-    const handleSavePurchase = useCallback(async (purchaseData: Omit<Purchase, 'id' | 'createdAt' | 'supplierId' | 'status' | 'updatedAt'>) => {
-        await addPurchase(purchaseData);
-        setPurchaseModalOpen(false);
-    }, [addPurchase]);
     
+    const handleOpenPaymentModal = useCallback((purchase: Purchase) => {
+        setPurchaseToPay(purchase);
+        setPaymentModalOpen(true);
+    }, []);
+
     const handleSavePayment = useCallback(async (paymentData: Omit<SupplierPayment, 'id' | 'createdAt' | 'supplierId' | 'updatedAt'>) => {
         await addPayment(paymentData);
         setPaymentModalOpen(false);
+        setPurchaseToPay(null);
     }, [addPayment]);
 
     const handleSaveSupplier = useCallback(async (supplierData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'>) => {
@@ -46,7 +46,6 @@ export const SupplierDetail: React.FC = () => {
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <DetailHeader
                     backTo="/proveedores"
-                    backToText="Volver a Proveedores"
                     title={supplier.businessName}
                     subtitle={supplier.cuit}
                     email={supplier.email}
@@ -73,40 +72,25 @@ export const SupplierDetail: React.FC = () => {
                                 >
                                     Editar Proveedor
                                 </button>
-                                <button
-                                    onClick={() => setPurchaseModalOpen(true)}
-                                    className="bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50"
-                                >
-                                    Registrar Compra
-                                </button>
-                                <button
-                                    onClick={() => setPaymentModalOpen(true)}
-                                    className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700"
-                                >
-                                    Registrar Pago
-                                </button>
                             </div>
                             
                             <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-                                <h2 className="text-2xl font-semibold text-slate-900 mb-4">Historial de Cuenta Corriente</h2>
-                                <SupplierHistoryTable history={history} />
+                                <h2 className="text-2xl font-semibold text-slate-900 mb-4">Historial de Facturas de Compra</h2>
+                                <PurchaseList purchases={purchases} onPay={handleOpenPaymentModal} />
                             </div>
                         </>
                     )}
                 </main>
             </div>
-
-            <PurchaseModal
-                isOpen={isPurchaseModalOpen}
-                onClose={() => setPurchaseModalOpen(false)}
-                onSave={handleSavePurchase}
-            />
-
-            <SupplierPaymentModal
-                isOpen={isPaymentModalOpen}
-                onClose={() => setPaymentModalOpen(false)}
-                onSave={handleSavePayment}
-            />
+            
+            {purchaseToPay && (
+                <SupplierPaymentModal
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setPaymentModalOpen(false)}
+                    onSave={handleSavePayment}
+                    purchase={purchaseToPay}
+                />
+            )}
             
         </div>
     );

@@ -6,13 +6,14 @@ import { StockMovementType } from '../types';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
 import { PageHeader } from '../components/shared/PageHeader.tsx';
 
-// FIX: Add 'sale' to the map to cover all StockMovementType variants.
+// FIX: Add 'sale' and 'purchase' to the map to cover all StockMovementType variants.
 const MOVEMENT_TYPE_MAP: Record<StockMovementType, { label: string; color: string }> = {
     creation: { label: 'Creación', color: 'bg-blue-100 text-blue-800' },
     manual_adjustment: { label: 'Ajuste Manual', color: 'bg-indigo-100 text-indigo-800' },
     import: { label: 'Importación', color: 'bg-purple-100 text-purple-800' },
     deletion: { label: 'Eliminación', color: 'bg-red-100 text-red-800' },
     sale: { label: 'Venta', color: 'bg-green-100 text-green-800' },
+    purchase: { label: 'Compra', color: 'bg-yellow-100 text-yellow-800' },
 };
 
 const StockHistory: React.FC = () => {
@@ -21,7 +22,7 @@ const StockHistory: React.FC = () => {
     if (loading) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader title="Historial de Movimientos" backTo="/stock" backToText="Volver a Stock" />
+                <PageHeader title="Historial de Movimientos" backTo="/stock" />
                 <div className="flex justify-center items-center h-64">
                     <LoadingSpinner />
                 </div>
@@ -32,7 +33,7 @@ const StockHistory: React.FC = () => {
     if (error) {
         return (
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader title="Historial de Movimientos" backTo="/stock" backToText="Volver a Stock" />
+                <PageHeader title="Historial de Movimientos" backTo="/stock" />
                 <p className="text-red-600">Error: {error}</p>
             </div>
         );
@@ -41,7 +42,7 @@ const StockHistory: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-                <PageHeader title="Historial de Movimientos de Stock" backTo="/stock" backToText="Volver a Control de Stock" />
+                <PageHeader title="Historial de Movimientos de Stock" backTo="/stock" />
                 
                 <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
                     <table className="w-full text-sm text-left text-slate-500">

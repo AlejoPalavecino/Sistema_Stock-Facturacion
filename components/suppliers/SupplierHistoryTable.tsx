@@ -1,7 +1,15 @@
 
 import React from 'react';
 import { formatARS, formatDateTime } from '../../utils/format';
-import { SupplierHistoryItem } from '../../hooks/useSupplierDetails';
+import { Purchase, SupplierPayment } from '../../types';
+
+// FIX: Define SupplierHistoryItem locally as it was not exported from the hook.
+export type SupplierHistoryType = 'PURCHASE' | 'PAYMENT';
+export interface SupplierHistoryItem {
+    type: SupplierHistoryType;
+    date: string;
+    data: Purchase | SupplierPayment;
+}
 
 interface SupplierHistoryTableProps {
     history: SupplierHistoryItem[];
@@ -12,9 +20,11 @@ export const SupplierHistoryTable: React.FC<SupplierHistoryTableProps> = ({ hist
     const renderDescription = (item: SupplierHistoryItem) => {
         switch (item.type) {
             case 'PURCHASE':
-                return `Compra - ${item.data.notes || 'Sin descripción'}`;
+                // FIX: Add type assertion to safely access properties.
+                return `Compra - ${(item.data as Purchase).notes || 'Sin descripción'}`;
             case 'PAYMENT':
-                return `Pago realizado (${item.data.paymentMethod})`;
+                // FIX: Add type assertion to safely access properties.
+                return `Pago realizado (${(item.data as SupplierPayment).paymentMethod})`;
             default:
                 return 'Movimiento desconocido';
         }
@@ -22,14 +32,16 @@ export const SupplierHistoryTable: React.FC<SupplierHistoryTableProps> = ({ hist
 
     const renderDebit = (item: SupplierHistoryItem) => {
         if (item.type === 'PURCHASE') {
-            return formatARS(item.data.totalAmountARS);
+            // FIX: Add type assertion to safely access properties.
+            return formatARS((item.data as Purchase).totalAmountARS);
         }
         return '-';
     };
 
     const renderCredit = (item: SupplierHistoryItem) => {
         if (item.type === 'PAYMENT') {
-            return formatARS(item.data.amountARS);
+            // FIX: Add type assertion to safely access properties.
+            return formatARS((item.data as SupplierPayment).amountARS);
         }
         return '-';
     };

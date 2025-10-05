@@ -9,10 +9,9 @@ interface SupplierTableProps {
   suppliers: SupplierWithDebt[];
   // FIX: Added onEdit prop to allow in-page editing from the Proveedores screen.
   onEdit: (supplier: SupplierWithDebt) => void;
-  onToggleActive: (id: string) => void;
 }
 
-export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, onEdit, onToggleActive }) => {
+export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, onEdit }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
       <table className="w-full text-left text-slate-500">
@@ -36,8 +35,8 @@ export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, on
               <td className="px-6 py-4">{supplier.contactName || '-'}</td>
               <td className={`px-6 py-4 text-right font-semibold ${supplier.debt > 0 ? 'text-red-600' : 'text-slate-700'}`}>{formatARS(supplier.debt)}</td>
               <td className="px-6 py-4">
-                <StatusPill variant={supplier.active ? 'success' : 'neutral'}>
-                  {supplier.active ? 'Activo' : 'Inactivo'}
+                <StatusPill variant={supplier.debt > 0 ? 'danger' : 'success'}>
+                  {supplier.debt > 0 ? 'Con Deuda' : 'Sin Deuda'}
                 </StatusPill>
               </td>
               <td className="px-6 py-4">
@@ -45,7 +44,6 @@ export const SupplierTable: React.FC<SupplierTableProps> = memo(({ suppliers, on
                   {/* FIX: Add Edit button to trigger the onEdit handler. */}
                   <button onClick={() => onEdit(supplier)} className="font-medium text-blue-600 hover:underline text-base">Editar</button>
                   <Router.Link to={`/proveedores/${supplier.id}`} className="font-medium text-blue-600 hover:underline text-base">Ver Detalle</Router.Link>
-                  <button onClick={() => onToggleActive(supplier.id)} className="font-medium text-slate-600 hover:underline text-base">{supplier.active ? 'Desactivar' : 'Activar'}</button>
                 </div>
               </td>
             </tr>

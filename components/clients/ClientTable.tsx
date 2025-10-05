@@ -7,10 +7,9 @@ import { StatusPill } from '../shared/StatusPill.tsx';
 
 interface ClientTableProps {
   clients: ClientWithDebt[];
-  onToggleActive: (id: string) => void;
 }
 
-export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onToggleActive }) => {
+export const ClientTable: React.FC<ClientTableProps> = memo(({ clients }) => {
   return (
     <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
       <table className="w-full text-base text-left">
@@ -33,15 +32,14 @@ export const ClientTable: React.FC<ClientTableProps> = memo(({ clients, onToggle
               <td className="px-6 py-4 text-slate-700">{client.ivaCondition}</td>
               <td className="px-6 py-4 text-slate-700">{client.email}</td>
               <td className="px-6 py-4">
-                <StatusPill variant={client.active ? 'success' : 'neutral'}>
-                    {client.active ? 'Activo' : 'Inactivo'}
+                <StatusPill variant={client.debt > 0 ? 'danger' : 'success'}>
+                    {client.debt > 0 ? 'Con Deuda' : 'Sin Deuda'}
                 </StatusPill>
               </td>
               <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-red-600' : 'text-slate-800'}`}>{formatARS(client.debt)}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-4">
                   <Router.Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-base">Ver Detalle</Router.Link>
-                  <button onClick={() => onToggleActive(client.id)} className="font-medium text-slate-600 hover:underline text-base">{client.active ? 'Desactivar' : 'Activar'}</button>
                 </div>
               </td>
             </tr>

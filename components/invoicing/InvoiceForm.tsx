@@ -7,6 +7,7 @@ import { InvoiceItemsTable } from './InvoiceItemsTable.tsx';
 import { formatARS } from '../../utils/format.ts';
 import { Modal } from '../shared/Modal.tsx';
 import { sumTotals } from '../../utils/tax.ts';
+import * as clientsRepo from '../../services/db/clientsRepo.ts';
 
 interface InvoiceFormProps {
   invoiceId: string;
@@ -31,10 +32,27 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, ac
     fetchInvoice();
   }, [invoiceId, getById]);
 
-  const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFieldChange = async (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (!invoice) return;
     const { name, value } = e.target;
-    setInvoice({ ...invoice, [name]: value });
+
+    if (name === 'type' && value === 'X') {
+        try {
+            const cfClient = await clientsRepo.getConsumidorFinalClient();
+            setInvoice({ 
+                ...invoice, 
+                type: 'X',
+                clientId: cfClient.id,
+                clientName: cfClient.name,
+                clientDocType: cfClient.docType,
+                clientDocNumber: cfClient.docNumber,
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error setting client');
+        }
+    } else {
+        setInvoice({ ...invoice, [name]: value });
+    }
   };
 
   const handleClientSelect = (client: Client) => {
@@ -104,7 +122,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, ac
   };
 
   const handleConfirmCancel = async () => {
-    if (!invoice || invoice.status !== 'EMITIDA') return;
+    if (!invoice || (invoice.status !== 'PAGADA' && invoice.status !== 'PENDIENTE_PAGO')) return;
     try {
         await cancelInvoice(invoice.id);
         setCancelConfirmOpen(false);
@@ -147,7 +165,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, ac
         <div>
           <label className="block mb-1.5 text-base font-medium text-slate-600">Tipo</label>
           <select name="type" value={invoice.type} onChange={handleFieldChange} disabled={invoice.status !== 'BORRADOR'} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
-            {(['A', 'B', 'C'] as InvoiceType[]).map(t => <option key={t} value={t}>{t}</option>)}
+            {(['A', 'B', 'C', 'X'] as InvoiceType[]).map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
         <div>
@@ -167,6 +185,12 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, ac
           <div className="w-full px-3 py-2 text-base text-slate-900 bg-slate-100 border border-slate-300 rounded-lg">
             {invoice.concept}
           </div>
+        </div>
+        <div>
+            <label className="block mb-1.5 text-base font-medium text-slate-600">Nº Expediente</label>
+            <div className="w-full px-3 py-2 text-base text-slate-900 bg-slate-100 border border-slate-300 rounded-lg">
+                {invoice.expediente || 'N/A'}
+            </div>
         </div>
       </div>
 
@@ -215,7 +239,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ invoiceId, onClose, ac
             {invoice.status === 'BORRADOR' && (
                 <button onClick={() => setDeleteConfirmOpen(true)} className="text-base font-semibold text-red-600 hover:underline">Eliminar Borrador</button>
             )}
-             {invoice.status === 'EMITIDA' && (
+             {(invoice.status === 'PAGADA' || invoice.status === 'PENDIENTE_PAGO') && (
                 <button onClick={() => setCancelConfirmOpen(true)} className="text-base font-semibold text-red-600 hover:underline">Anular Factura</button>
             )}
         </div>

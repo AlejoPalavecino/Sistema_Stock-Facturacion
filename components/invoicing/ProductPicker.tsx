@@ -1,20 +1,24 @@
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useProducts } from '../../hooks/useProducts.ts';
+import { useCategories } from '../../hooks/useCategories.ts';
 import { Product } from '../../types/product.ts';
 import { formatARS } from '../../utils/format.ts';
 import { SearchIcon } from '../shared/Icons.tsx';
+import { QuickAddProductForm } from '../products/QuickAddProductForm.tsx';
 
 interface ProductPickerProps {
   onSelectProduct: (product: Product) => void;
+  allowZeroStock?: boolean;
 }
 
-export const ProductPicker: React.FC<ProductPickerProps> = ({ onSelectProduct }) => {
+export const ProductPicker: React.FC<ProductPickerProps> = ({ onSelectProduct, allowZeroStock = false }) => {
   const { products, loading, error, searchQuery, setSearchQuery } = useProducts();
+  const { categories } = useCategories();
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
   
   const availableProducts = useMemo(() => {
-    return products.filter(p => p.active && p.stock > 0);
-  }, [products]);
+    return products.filter(p => p.active && (allowZeroStock || p.stock > 0));
+  }, [products, allowZeroStock]);
 
   return (
     <div>
@@ -56,6 +60,14 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({ onSelectProduct })
           ))}
         </ul>
       </div>
+
+      <div className="text-center mt-4">
+        <button onClick={() => setShowQuickAdd(!showQuickAdd)} className="text-sm font-semibold text-blue-600 hover:underline">
+          {showQuickAdd ? 'Cancelar Alta Rápida' : 'Alta Rápida de Producto'}
+        </button>
+      </div>
+
+      {showQuickAdd && <QuickAddProductForm onProductCreated={onSelectProduct} categories={categories} />}
     </div>
   );
 };

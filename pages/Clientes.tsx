@@ -1,16 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import * as Router from 'react-router-dom';
 import { useClients } from '../hooks/useClients.ts';
-import { Client, ClientImportRow } from '../types';
+import { Client } from '../types';
 import { ClientTable } from '../components/clients/ClientTable.tsx';
 import { ClientForm } from '../components/clients/ClientForm.tsx';
 import { EmptyState } from '../components/shared/EmptyState.tsx';
-import { ImportData } from '../components/shared/ImportData.tsx';
 import { Modal } from '../components/shared/Modal.tsx';
 import { LoadingSpinner } from '../components/shared/LoadingSpinner.tsx';
 import { Pagination } from '../components/shared/Pagination.tsx';
 import { PageHeader } from '../components/shared/PageHeader.tsx';
-import { PlusIcon, ExportIcon, ImportIcon, EmptyUserIcon } from '../components/shared/Icons.tsx';
+import { PlusIcon, EmptyUserIcon } from '../components/shared/Icons.tsx';
 import { ActionBar } from '../components/shared/ActionBar.tsx';
 
 const Clientes: React.FC = () => {
@@ -19,14 +18,11 @@ const Clientes: React.FC = () => {
     loading,
     error,
     createClient,
-    deactivateClient,
     seedIfEmpty,
-    importClients,
-    exportClients,
     searchQuery,
     setSearchQuery,
-    onlyActive,
-    setOnlyActive,
+    onlyWithDebt,
+    setOnlyWithDebt,
     sortBy,
     setSortBy,
     currentPage,
@@ -36,7 +32,6 @@ const Clientes: React.FC = () => {
   } = useClients();
 
   const [isNewClientModalOpen, setNewClientModalOpen] = useState(false);
-  const [isImportModalOpen, setImportModalOpen] = useState(false);
 
   const handleFormSave = useCallback(async (clientData: Omit<Client, 'id' | 'createdAt' | 'updatedAt'>) => {
     await createClient(clientData);
@@ -46,7 +41,7 @@ const Clientes: React.FC = () => {
   if (loading) {
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-            <PageHeader title="Clientes" backTo="/" backToText="Volver al Dashboard" />
+            <PageHeader title="Clientes" backTo="/" />
             <div className="flex justify-center items-center h-64">
                 <LoadingSpinner />
             </div>
@@ -57,7 +52,7 @@ const Clientes: React.FC = () => {
   return (
     <div className="bg-slate-50 min-h-screen">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <PageHeader title="Clientes" backTo="/" backToText="Volver al Dashboard" />
+        <PageHeader title="Clientes" backTo="/" />
 
         {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
         
@@ -69,12 +64,6 @@ const Clientes: React.FC = () => {
           >
             <button className="flex items-center justify-center bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setNewClientModalOpen(true)}>
               <PlusIcon className="h-5 w-5 mr-2" /> Nuevo Cliente
-            </button>
-            <button onClick={() => setImportModalOpen(true)} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-              <ImportIcon className="h-5 w-5 mr-2" /> Importar
-            </button>
-            <button onClick={() => exportClients('excel')} className="flex items-center justify-center bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
-              <ExportIcon className="h-5 w-5 mr-2" /> Exportar Excel
             </button>
           </ActionBar>
 
@@ -92,11 +81,11 @@ const Clientes: React.FC = () => {
             <label className="flex items-center text-base font-medium text-slate-700">
               <input
                 type="checkbox"
-                checked={onlyActive}
-                onChange={(e) => setOnlyActive(e.target.checked)}
+                checked={onlyWithDebt}
+                onChange={(e) => setOnlyWithDebt(e.target.checked)}
                 className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
               />
-              <span className="ml-2">Mostrar solo activos</span>
+              <span className="ml-2">Mostrar solo con deuda</span>
             </label>
           </div>
 
@@ -104,7 +93,6 @@ const Clientes: React.FC = () => {
             <>
               <ClientTable
                 clients={clients}
-                onToggleActive={deactivateClient}
               />
               <Pagination
                 currentPage={currentPage}
@@ -130,13 +118,6 @@ const Clientes: React.FC = () => {
           />
       </Modal>
 
-      <Modal isOpen={isImportModalOpen} onClose={() => setImportModalOpen(false)} title="Importar Clientes">
-        <ImportData<ClientImportRow>
-            onImport={importClients}
-            onClose={() => setImportModalOpen(false)}
-            helpText="Cabeceras: name, docType, docNumber, ivaCondition, email, phone, address, notes, active."
-        />
-      </Modal>
     </div>
   );
 };

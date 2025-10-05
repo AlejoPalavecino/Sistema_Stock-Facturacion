@@ -6,6 +6,7 @@ import { normalizeDocNumber, validateDoc } from '../../utils/doc.ts';
 import { createRepository } from './repository.ts';
 
 const seedData = (): Omit<Client, 'id' | 'createdAt' | 'updatedAt'>[] => [
+    { name: 'Consumidor Final', docType: 'SD', docNumber: '0', ivaCondition: 'CF', active: true, email: '', phone: '', address: '' },
     { name: 'Juan Pérez', docType: 'DNI', docNumber: '30123456', ivaCondition: 'CF', active: true, email: 'juan.perez@example.com', phone: '1122334455', address: 'Av. Corrientes 1234, CABA' },
     { name: 'Librería San Martín SRL', docType: 'CUIT', docNumber: '30712345678', ivaCondition: 'RI', active: true, email: 'compras@libreriasm.com', phone: '1198765432', address: 'Florida 500, CABA' },
     { name: 'María Gómez', docType: 'DNI', docNumber: '28333444', ivaCondition: 'MONOTRIBUTO', active: false, email: 'maria.gomez@example.com', phone: '1133445566', address: '' },
@@ -116,4 +117,29 @@ export const seedIfEmpty = async (): Promise<void> => {
             await repo.create(clientData);
         }
     }
+};
+
+export const getConsumidorFinalClient = async (): Promise<Client> => {
+    const allClients = await repo.list();
+    let cfClient = allClients.find(c => c.name.toLowerCase() === 'consumidor final');
+
+    if (!cfClient) {
+        try {
+            cfClient = await create({
+                name: 'Consumidor Final',
+                docType: 'SD',
+                docNumber: '0',
+                ivaCondition: 'CF',
+                active: true,
+                email: '',
+                phone: '',
+                address: '',
+                notes: 'Cliente genérico para ventas rápidas.',
+            });
+        } catch (error) {
+            console.error("Failed to create 'Consumidor Final' client:", error);
+            throw new Error("Could not find or create the 'Consumidor Final' client.");
+        }
+    }
+    return cfClient;
 };

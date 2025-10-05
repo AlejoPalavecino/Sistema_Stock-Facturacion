@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as invoicesRepo from '../services/db/invoicesRepo.ts';
 import * as productsRepo from '../services/db/productsRepo.ts';
+import * as paymentsRepo from '../services/db/paymentsRepo.ts';
 import { Invoice } from '../types';
 import { sumTotals } from '../utils/tax.ts';
 import { onStorageChange } from '../utils/storage.ts';
@@ -31,9 +32,11 @@ export function useInvoices() {
         // Also listen for changes in products for stock validation purposes
         const cleanInvoices = onStorageChange('invoices_v1', fetchInvoices);
         const cleanProducts = onStorageChange('products_v1', fetchInvoices);
+        const cleanPayments = onStorageChange('payments_v1', fetchInvoices);
         return () => {
             cleanInvoices();
             cleanProducts();
+            cleanPayments();
         };
     }, [fetchInvoices]);
 
@@ -91,7 +94,7 @@ export function useInvoices() {
     const cancelInvoice = useCallback(async (id: string): Promise<Invoice> => {
         const invoice = await getById(id);
         if (!invoice) throw new Error('Factura no encontrada.');
-        if (invoice.status !== 'EMITIDA') throw new Error('Solo se pueden anular facturas emitidas.');
+        if (invoice.status !== 'PAGADA' && invoice.status !== 'PENDIENTE_PAGO') throw new Error('Solo se pueden anular facturas emitidas.');
         // Note: Stock is NOT replenished in this simple version.
         const cancelled = await invoicesRepo.setStatus(id, 'ANULADA');
         await fetchInvoices();
@@ -104,6 +107,25 @@ export function useInvoices() {
         await invoicesRepo.remove(id);
         await fetchInvoices();
     }, [getById, fetchInvoices]);
+    
+    const markInvoiceAsPaid = useCallback(async (id: string): Promise<void> => {
+        const invoice = await getById(id);
+        if (!invoice || invoice.status !== 'PENDIENTE_PAGO') {
+            throw new Error("La factura no está pendiente de pago.");
+        }
+        // Create a payment record to balance the account
+        await paymentsRepo.create({
+            clientId: invoice.clientId,
+            amountARS: invoice.totals.totalARS,
+            date: new Date().toISOString(),
+            paymentMethod: 'TRANSFERENCIA', // Default method for clearance
+            notes: `Pago automático para factura ${invoice.pos}-${invoice.number}`,
+        });
+        
+        await invoicesRepo.markAsPaid(id);
+        await fetchInvoices(); // The storage listener will trigger this, but we call it for immediate feedback.
+    }, [getById, fetchInvoices]);
+
 
     const exportInvoices = useCallback((format: 'excel') => {
         if (format !== 'excel' || typeof XLSX === 'undefined') {
@@ -112,6 +134,7 @@ export function useInvoices() {
 
         const dataToExport = invoices.map(inv => ({
             Numero: `${inv.pos}-${inv.number}`,
+            'Nº Expediente': inv.expediente || '',
             Tipo: inv.type,
             Cliente: inv.clientName,
             Documento: inv.clientDocNumber,
@@ -141,6 +164,7 @@ export function useInvoices() {
         issueInvoice,
         cancelInvoice,
         removeDraft,
+        markInvoiceAsPaid,
         exportInvoices,
     };
 }
