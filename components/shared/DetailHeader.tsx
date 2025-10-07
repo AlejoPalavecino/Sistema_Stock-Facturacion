@@ -14,16 +14,16 @@ export const DetailHeader: React.FC<DetailHeaderProps> = ({ backTo, title, subti
   return (
     <header className="mb-8">
       <Router.Link to={backTo} className="inline-block mb-4">
-        <button className="flex items-center text-base font-semibold text-white bg-slate-600 rounded-lg px-4 py-2 hover:bg-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2">
+        <button className="btn btn-neutral text-base">
           <BackIcon className="h-4 w-4 mr-2" />
           Volver Atrás
         </button>
       </Router.Link>
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start">
+      <div className="bg-white p-6 rounded-lg shadow-sm border border-cream-200 flex flex-col md:flex-row justify-between items-start">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight">{title}</h1>
-          {subtitle && <p className="text-base text-slate-700 mt-1">{subtitle}</p>}
-          {email && <p className="text-base text-slate-700">{email}</p>}
+          <h1 className="text-3xl sm:text-4xl font-bold text-text-dark tracking-tight">{title}</h1>
+          {subtitle && <p className="text-base text-text-medium mt-1">{subtitle}</p>}
+          {email && <p className="text-base text-text-medium">{email}</p>}
         </div>
         <div className="text-left md:text-right mt-4 md:mt-0">
           {children}

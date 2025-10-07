@@ -23,11 +23,61 @@
   }
 }
 </script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          cream: {
+            50: '#FDFBF9',
+            100: '#FAF8F5',
+            200: '#F3EDE7',
+            300: '#EBE2D9',
+          },
+          'pastel-blue': { // Vivid Blue
+            100: '#E0EFFF',
+            500: '#3B82F6', // More vivid
+            600: '#2563EB', // Darker for hover
+            700: '#1D4ED8', // Darkest for border
+          },
+          'pastel-green': { // Vivid Green
+            100: '#D1FAE5',
+            500: '#10B981', // More vivid
+            600: '#059669', // Darker for hover
+            700: '#047857', // Darkest for border
+          },
+          'pastel-red': { // Vivid Red
+            100: '#FEE2E2',
+            500: '#EF4444', // More vivid
+            600: '#DC2626', // Darker for hover
+            700: '#B91C1C', // Darkest for border
+          },
+          'pastel-yellow': {
+            100: '#FEF3C7',
+            500: '#F59E0B',
+            600: '#D97706',
+            700: '#B45309',
+          },
+           'pastel-orange': { // Vivid Orange
+            500: '#F97316', // More vivid
+            600: '#EA580C', // Darker for hover
+            700: '#C2410C', // Darkest for border
+          },
+          'text-dark': '#1F2937', // Near black
+          'text-medium': '#4B5563', // Dark gray
+          'text-light': '#9CA3AF', // Medium gray
+        }
+      }
+    }
+  }
+</script>
 <style>
   body {
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #FAF8F5; /* cream-100 */
+    color: #1F2937; /* text-dark */
   }
   @keyframes modal-pop-in {
     from {
@@ -54,6 +104,181 @@
       display: block !important;
     }
   }
+
+  /* 3D Button Styles */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem; /* Increased padding */
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid transparent;
+    transition: all 0.15s ease-in-out;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: none !important;
+  }
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .btn-primary {
+    background-color: #3B82F6; /* pastel-blue-500 */
+    color: white;
+    border-bottom: 4px solid #1D4ED8; /* pastel-blue-700 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background-color: #2563EB; /* pastel-blue-600 */
+  }
+  
+  .btn-secondary {
+    background-color: #FFFFFF;
+    color: #4B5563; /* text-medium */
+    border: 1px solid #EBE2D9; /* cream-300 */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background-color: #FDFBF9; /* cream-50 */
+    border-color: #D6C9BE;
+    color: #1F2937; /* text-dark */
+  }
+
+  .btn-danger {
+    background-color: #EF4444; /* pastel-red-500 */
+    color: white;
+    border-bottom: 4px solid #B91C1C; /* pastel-red-700 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .btn-danger:hover:not(:disabled) {
+    background-color: #DC2626; /* pastel-red-600 */
+  }
+
+  .btn-green {
+    background-color: #10B981; /* pastel-green-500 */
+    color: white;
+    border-bottom: 4px solid #047857; /* pastel-green-700 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .btn-green:hover:not(:disabled) {
+    background-color: #059669; /* pastel-green-600 */
+  }
+  
+  .btn-neutral {
+    background-color: #4B5563; /* text-medium */
+    color: white;
+    border-bottom: 4px solid #1F2937; /* text-dark */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .btn-neutral:hover:not(:disabled) {
+    background-color: #1F2937;
+  }
+
+  .btn-orange {
+    background-color: #F97316; /* pastel-orange-500 */
+    color: white;
+    border-bottom: 4px solid #C2410C; /* pastel-orange-700 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .btn-orange:hover:not(:disabled) {
+    background-color: #EA580C; /* pastel-orange-600 */
+  }
+  
+  /* 3D Search Input Style */
+  .search-input {
+    padding: 0.65rem 1rem 0.65rem 2.5rem; /* Adjust padding for icon */
+    font-size: 1rem;
+    color: #1F2937; /* text-dark */
+    background-color: #FFFFFF;
+    border-radius: 0.5rem;
+    border: 1px solid #EBE2D9; /* cream-300 */
+    border-bottom: 3px solid #D6C9BE; /* Darker cream for depth */
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    transition: all 0.15s ease-in-out;
+  }
+  .search-input::placeholder {
+    color: #9CA3AF; /* text-light */
+  }
+  .search-input:focus {
+    outline: none;
+    border-color: #3B82F6; /* pastel-blue-500 */
+    border-bottom-width: 3px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05), 0 0 0 2px rgba(59, 130, 246, 0.3);
+  }
+  
+  /* Status Pill Styles */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+  }
+
+  .status-pill::before {
+    content: '';
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    margin-right: 0.5rem;
+  }
+
+  /* Success Variant */
+  .status-pill-success {
+    background-color: #D1FAE5; /* pastel-green-100 */
+    color: #047857; /* pastel-green-700 */
+  }
+  .status-pill-success::before {
+    background-color: #10B981; /* pastel-green-500 */
+  }
+
+  /* Warning Variant */
+  .status-pill-warning {
+    background-color: #FEF3C7; /* pastel-yellow-100 */
+    color: #B45309; /* pastel-yellow-700 */
+  }
+  .status-pill-warning::before {
+    background-color: #F59E0B; /* pastel-yellow-500 */
+  }
+
+  /* Danger Variant */
+  .status-pill-danger {
+    background-color: #FEE2E2; /* pastel-red-100 */
+    color: #B91C1C; /* pastel-red-700 */
+  }
+  .status-pill-danger::before {
+    background-color: #EF4444; /* pastel-red-500 */
+  }
+
+  /* Info Variant */
+  .status-pill-info {
+    background-color: #E0EFFF; /* pastel-blue-100 */
+    color: #1D4ED8; /* pastel-blue-700 */
+  }
+  .status-pill-info::before {
+    background-color: #3B82F6; /* pastel-blue-500 */
+  }
+
+  /* Neutral Variant */
+  .status-pill-neutral {
+    background-color: #F3EDE7; /* cream-200 */
+    color: #4B5563; /* text-medium */
+  }
+  .status-pill-neutral::before {
+    background-color: #9CA3AF; /* text-light */
+  }
+
 </style>
 </head>
   <body>

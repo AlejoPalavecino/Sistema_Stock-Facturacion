@@ -1,26 +1,30 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Product, ProductId, Category, ProductImportResult } from '../types';
+import { Product, ProductId, Category, ProductWithSalePrice } from '../types';
 import * as productsRepo from '../services/db/productsRepo.ts';
 import { onStorageChange } from '../utils/storage.ts';
 import { usePagination } from './usePagination.ts';
 
 const DEMO_PRODUCTS: Omit<Product, 'id' | 'createdAt' | 'updatedAt' | 'sku'>[] = [
-    { name: 'Lápiz HB #2', category: 'Librería', priceARS: 150.50, stock: 120, minStock: 20, active: true },
-    { name: 'Cuaderno A4 Rayado', category: 'Papelería', priceARS: 850.00, stock: 80, minStock: 15, active: true },
-    { name: 'Resma de Papel A4 75g', category: 'Papelería', priceARS: 4500.00, stock: 15, minStock: 10, active: true },
-    { name: 'Mochila Escolar', category: 'Escolar', priceARS: 12500.00, stock: 8, minStock: 5, active: true },
-    { name: 'Pendrive 64GB', category: 'Tecnología', priceARS: 7800.00, stock: 25, minStock: 5, active: true },
-    { name: 'Tijera Escolar', category: 'Librería', priceARS: 450.00, stock: 50, minStock: 10, active: true },
-    { name: 'Calculadora Científica', category: 'Tecnología', priceARS: 9900.00, stock: 12, minStock: 3, active: false },
-    { name: 'Cinta Adhesiva', category: 'General', priceARS: 300.00, stock: 100, minStock: 25, active: true },
+    { name: 'Lápiz HB #2', brand: 'Faber-Castell', category: 'Librería', netPrice: 124.38, vatRate: 21, stock: 120, minStock: 20, active: true },
+    { name: 'Cuaderno A4 Rayado', brand: 'Gloria', category: 'Papelería', netPrice: 702.48, vatRate: 21, stock: 80, minStock: 15, active: true },
+    { name: 'Resma de Papel A4 75g', brand: 'Boreal', category: 'Papelería', netPrice: 3719.01, vatRate: 21, stock: 15, minStock: 10, active: true },
+    { name: 'Mochila Escolar', brand: 'Jansport', category: 'Escolar', netPrice: 10330.58, vatRate: 21, stock: 8, minStock: 5, active: true },
+    { name: 'Pendrive 64GB', brand: 'Kingston', category: 'Tecnología', netPrice: 6446.28, vatRate: 21, stock: 25, minStock: 5, active: true },
+    { name: 'Tijera Escolar', brand: 'Maped', category: 'Librería', netPrice: 371.90, vatRate: 21, stock: 50, minStock: 10, active: true },
+    { name: 'Calculadora Científica', brand: 'Casio', category: 'Tecnología', netPrice: 8181.82, vatRate: 21, stock: 12, minStock: 3, active: false },
+    { name: 'Cinta Adhesiva', brand: '3M', category: 'General', netPrice: 247.93, vatRate: 21, stock: 100, minStock: 25, active: true },
 ];
 
-type SortableKeys = 'name' | 'sku' | 'stock' | 'priceARS';
+type SortableKeys = 'name' | 'sku' | 'stock' | 'salePrice';
 
 // For SheetJS global variable from CDN
 declare var XLSX: any;
 
-export function useProducts() {
+interface UseProductsOptions {
+  disablePagination?: boolean;
+}
+
+export function useProducts({ disablePagination = false }: UseProductsOptions = {}) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,14 +69,6 @@ export function useProducts() {
     await productsRepo.remove(id);
     await fetchProducts();
   }, [fetchProducts]);
-
-  const importProducts = useCallback(async (data: any[]): Promise<ProductImportResult> => {
-    const result = await productsRepo.batchCreate(data);
-    if (result.successCount > 0) {
-        await fetchProducts();
-    }
-    return result;
-  }, [fetchProducts]);
   
   const seedIfEmpty = useCallback(async () => {
     const currentProducts = await productsRepo.list();
@@ -92,8 +88,11 @@ export function useProducts() {
     }
   }, [fetchProducts]);
 
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = [...products];
+  const filteredAndSortedProducts: ProductWithSalePrice[] = useMemo(() => {
+    let result: ProductWithSalePrice[] = products.map(p => ({
+        ...p,
+        salePrice: p.netPrice * (1 + p.vatRate / 100)
+    }));
 
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -111,15 +110,21 @@ export function useProducts() {
     }
 
     result.sort((a, b) => {
-      if (a[sortedBy] < b[sortedBy]) return -1;
-      if (a[sortedBy] > b[sortedBy]) return 1;
+      const valA = a[sortedBy];
+      const valB = b[sortedBy];
+
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return valA.localeCompare(valB);
+      }
+      if (valA < valB) return -1;
+      if (valA > valB) return 1;
       return 0;
     });
 
     return result;
   }, [products, searchQuery, categoryFilter, showOnlyLowStock, sortedBy]);
   
-  const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<Product>(filteredAndSortedProducts);
+  const { paginatedData, currentPage, totalPages, setCurrentPage } = usePagination<ProductWithSalePrice>(filteredAndSortedProducts);
 
   const exportProducts = useCallback((format: 'excel') => {
     if (format !== 'excel' || typeof XLSX === 'undefined') {
@@ -134,14 +139,13 @@ export function useProducts() {
   }, [products]);
 
   return {
-    products: paginatedData,
+    products: disablePagination ? filteredAndSortedProducts : paginatedData,
     loading,
     error,
     createProduct,
     updateProduct,
     removeProduct,
     seedIfEmpty,
-    importProducts,
     exportProducts,
     searchQuery,
     setSearchQuery,

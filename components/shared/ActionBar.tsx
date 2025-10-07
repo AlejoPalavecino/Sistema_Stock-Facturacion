@@ -28,7 +28,7 @@ export const ActionBar: React.FC<ActionBarProps> = ({
           placeholder={searchPlaceholder}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2.5 text-base text-slate-900 border border-slate-300 rounded-lg bg-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="search-input w-full md:w-80"
         />
       </div>
     </div>

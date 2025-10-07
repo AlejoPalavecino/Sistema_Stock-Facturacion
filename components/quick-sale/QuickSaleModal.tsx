@@ -1,6 +1,7 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import * as productsRepo from '../../services/db/productsRepo';
-import { Product } from '../../types';
+import { Product, ProductWithSalePrice } from '../../types';
 import { Modal } from '../shared/Modal';
 import { ProductPicker } from '../invoicing/ProductPicker';
 import { formatARS } from '../../utils/format';
@@ -12,16 +13,18 @@ interface QuickSaleModalProps {
   onClose: () => void;
 }
 
+type CartItem = ProductWithSalePrice & { qty: number };
+
 export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose }) => {
-    const [cart, setCart] = useState<QuickSaleItem[]>([]);
+    const [cart, setCart] = useState<CartItem[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isProductPickerOpen, setProductPickerOpen] = useState(false);
     const [receiptDataForPreview, setReceiptDataForPreview] = useState<{ items: QuickSaleItem[], total: number } | null>(null);
 
-    const total = useMemo(() => cart.reduce((sum, item) => sum + item.priceARS * item.qty, 0), [cart]);
+    const total = useMemo(() => cart.reduce((sum, item) => sum + item.salePrice * item.qty, 0), [cart]);
 
-    const handleAddProduct = useCallback((product: Product) => {
+    const handleAddProduct = useCallback((product: ProductWithSalePrice) => {
         setCart(prevCart => {
             const existingItem = prevCart.find(item => item.id === product.id);
             if (existingItem) {
@@ -113,31 +116,31 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
     
     return (
         <>
-            <Modal isOpen={isOpen && !receiptDataForPreview} onClose={resetState} title="Venta Rápida" size="2xl">
+            <Modal isOpen={isOpen && !receiptDataForPreview} onClose={resetState} title="Venta Rápida" size="4xl">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Left side: Cart */}
                     <div className="space-y-4">
-                        <h3 className="font-semibold text-slate-800 text-lg border-b pb-2">Carrito de Venta</h3>
-                         <div className="max-h-80 overflow-y-auto border border-slate-200 rounded-lg bg-white">
+                        <h3 className="font-semibold text-text-dark text-lg border-b pb-2">Carrito de Venta</h3>
+                         <div className="max-h-80 overflow-y-auto border border-cream-200 rounded-lg bg-white">
                              {cart.length === 0 ? (
-                                <div className="p-8 text-center text-slate-500">
+                                <div className="p-8 text-center text-text-medium">
                                     <EmptyCartIcon />
                                     <p className="mt-2">Aún no hay productos.</p>
                                 </div>
                              ) : (
-                                <ul className="divide-y divide-slate-200">
+                                <ul className="divide-y divide-cream-200">
                                     {cart.map(item => (
                                         <li key={item.id} className="p-3 flex items-center gap-4">
                                             <div className="flex-grow">
-                                                <p className="font-medium text-slate-800 text-base">{item.name}</p>
-                                                <p className="text-sm text-slate-500">{formatARS(item.priceARS)}</p>
+                                                <p className="font-medium text-text-dark text-base">{item.name}</p>
+                                                <p className="text-sm text-text-medium">{formatARS(item.salePrice)}</p>
                                             </div>
 
                                             {/* Improved Quantity Input */}
-                                            <div className="flex items-center border border-slate-300 rounded-md">
+                                            <div className="flex items-center border border-cream-300 rounded-md">
                                                 <button 
                                                     onClick={() => handleUpdateQty(item.id, item.qty - 1)} 
-                                                    className="px-2 py-1 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-l-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                                                    className="px-2 py-1 text-text-medium bg-cream-100 hover:bg-cream-200 rounded-l-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
                                                     disabled={item.qty <= 1}
                                                     aria-label="Disminuir cantidad"
                                                 >
@@ -147,14 +150,14 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                                     type="number" 
                                                     value={item.qty}
                                                     onChange={e => handleUpdateQty(item.id, parseInt(e.target.value) || 1)}
-                                                    className="w-12 text-center border-none focus:ring-0 text-slate-800 font-medium bg-white text-base"
+                                                    className="w-12 text-center border-none focus:ring-0 text-text-dark font-medium bg-white text-base"
                                                     min="1"
                                                     max={item.stock}
                                                     aria-label={`Cantidad para ${item.name}`}
                                                 />
                                                 <button 
                                                     onClick={() => handleUpdateQty(item.id, item.qty + 1)} 
-                                                    className="px-2 py-1 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-r-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
+                                                    className="px-2 py-1 text-text-medium bg-cream-100 hover:bg-cream-200 rounded-r-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
                                                     disabled={item.qty >= item.stock}
                                                     aria-label="Aumentar cantidad"
                                                 >
@@ -162,9 +165,9 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                                 </button>
                                             </div>
 
-                                            <p className="w-20 text-right font-semibold text-slate-800 text-base">{formatARS(item.priceARS * item.qty)}</p>
+                                            <p className="w-20 text-right font-semibold text-text-dark text-base">{formatARS(item.salePrice * item.qty)}</p>
                                             
-                                            <button onClick={() => handleRemoveItem(item.id)} className="text-slate-400 hover:text-red-600 rounded-full p-1 transition-colors" aria-label={`Quitar ${item.name}`}>
+                                            <button onClick={() => handleRemoveItem(item.id)} className="text-text-light hover:text-pastel-red-600 rounded-full p-1 transition-colors" aria-label={`Quitar ${item.name}`}>
                                                 <DeleteIcon />
                                             </button>
                                         </li>
@@ -172,30 +175,30 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
                                 </ul>
                              )}
                          </div>
-                         <button onClick={() => setProductPickerOpen(true)} className="w-full bg-slate-100 text-slate-700 font-semibold py-2.5 px-4 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 text-base">
+                         <button onClick={() => setProductPickerOpen(true)} className="btn btn-secondary w-full">
                            <PlusIcon />
-                           Agregar Producto
+                           <span className="ml-2">Agregar Producto</span>
                          </button>
                     </div>
                     {/* Right side: Summary */}
-                    <div className="bg-slate-100 p-6 rounded-lg flex flex-col justify-between">
+                    <div className="bg-cream-100 p-6 rounded-lg flex flex-col justify-between">
                         <div>
                              <div className="space-y-2">
                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-xl font-bold text-slate-800">Total</span>
-                                    <span className="text-3xl font-bold text-slate-900">{formatARS(total)}</span>
+                                    <span className="text-xl font-bold text-text-dark">Total</span>
+                                    <span className="text-3xl font-bold text-text-dark">{formatARS(total)}</span>
                                  </div>
                              </div>
-                             {error && <p role="alert" className="text-red-600 text-sm mt-4 text-center">{error}</p>}
+                             {error && <p role="alert" className="text-pastel-red-600 text-sm mt-4 text-center">{error}</p>}
                         </div>
 
                          <div className="mt-6">
                             <button
                                 onClick={handleGenerateReceipt}
                                 disabled={isProcessing || cart.length === 0}
-                                className="w-full bg-green-600 text-white font-bold text-base py-3 px-4 rounded-lg shadow-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full btn btn-green"
                             >
-                                <GenerateIcon />
+                                <GenerateIcon className="mr-2" />
                                 {isProcessing ? 'Procesando...' : 'Generar Comprobante'}
                             </button>
                          </div>
@@ -205,28 +208,28 @@ export const QuickSaleModal: React.FC<QuickSaleModalProps> = ({ isOpen, onClose 
             
             {receiptDataForPreview && (
                 <Modal isOpen={!!receiptDataForPreview} onClose={resetState} title="Vista Previa del Comprobante" size="md">
-                    <div id="quick-sale-receipt-preview" className="flex justify-center bg-slate-100 p-4 rounded-md">
+                    <div id="quick-sale-receipt-preview" className="flex justify-center bg-cream-200 p-4 rounded-md">
                         <QuickSaleReceipt items={receiptDataForPreview.items} total={receiptDataForPreview.total} />
                     </div>
                     <div className="flex justify-end gap-3 mt-6">
                         <button
                             onClick={resetState}
-                            className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100"
+                            className="btn btn-secondary"
                         >
                             Cerrar
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 flex items-center gap-2"
+                            className="btn btn-primary"
                         >
-                            <PrintIcon />
+                            <PrintIcon className="mr-2" />
                             Imprimir
                         </button>
                     </div>
                 </Modal>
             )}
             
-            <Modal isOpen={isProductPickerOpen} onClose={() => setProductPickerOpen(false)} title="Agregar Producto">
+            <Modal isOpen={isProductPickerOpen} onClose={() => setProductPickerOpen(false)} title="Agregar Producto" size="2xl">
                 <ProductPicker onSelectProduct={handleAddProduct} />
             </Modal>
         </>

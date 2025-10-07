@@ -38,11 +38,11 @@ export const SupplierDetail: React.FC = () => {
     }, [updateSupplier]);
     
     if (loading) return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
-    if (error) return <div className="text-red-500 p-8">{error}</div>;
+    if (error) return <div className="text-pastel-red-500 p-8">{error}</div>;
     if (!supplier) return <div className="p-8">Proveedor no encontrado.</div>;
 
     return (
-        <div className="bg-slate-50 min-h-screen">
+        <div className="bg-cream-100 min-h-screen">
             <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
                 <DetailHeader
                     backTo="/proveedores"
@@ -50,8 +50,8 @@ export const SupplierDetail: React.FC = () => {
                     subtitle={supplier.cuit}
                     email={supplier.email}
                 >
-                    <p className="text-base text-slate-700">Deuda Total</p>
-                    <p className={`text-3xl sm:text-4xl font-bold ${debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    <p className="text-base text-text-medium">Deuda Total</p>
+                    <p className={`text-3xl sm:text-4xl font-bold ${debt > 0 ? 'text-pastel-red-600' : 'text-pastel-green-600'}`}>
                         {formatARS(debt)}
                     </p>
                 </DetailHeader>
@@ -68,14 +68,14 @@ export const SupplierDetail: React.FC = () => {
                             <div className="flex flex-wrap justify-end mb-6 gap-3">
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="bg-white text-slate-800 font-semibold text-base py-2.5 px-5 rounded-lg border border-slate-300 hover:bg-slate-50"
+                                    className="btn btn-secondary"
                                 >
                                     Editar Proveedor
                                 </button>
                             </div>
                             
-                            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-slate-200">
-                                <h2 className="text-2xl font-semibold text-slate-900 mb-4">Historial de Facturas de Compra</h2>
+                            <div className="bg-white p-4 sm:p-6 rounded-lg shadow-sm border border-cream-200">
+                                <h2 className="text-2xl font-semibold text-text-dark mb-4">Historial de Facturas de Compra</h2>
                                 <PurchaseList purchases={purchases} onPay={handleOpenPaymentModal} />
                             </div>
                         </>

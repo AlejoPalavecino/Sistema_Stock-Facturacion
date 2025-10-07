@@ -56,10 +56,10 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
 
   const { pageNumbers, startPage, endPage } = getPageNumbers();
 
-  const baseButtonClasses = 'px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors';
-  const disabledClasses = 'text-slate-400 bg-slate-100 cursor-not-allowed';
-  const enabledClasses = 'text-slate-600 bg-white hover:bg-slate-50 border border-slate-300';
-  const currentButtonClasses = 'text-white bg-blue-600 border border-blue-600 hover:bg-blue-700';
+  const baseButtonClasses = 'px-4 py-2 text-sm font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 focus:ring-offset-2 transition-colors';
+  const disabledClasses = 'text-text-light bg-cream-100 cursor-not-allowed';
+  const enabledClasses = 'text-text-medium bg-white hover:bg-cream-50 border border-cream-300';
+  const currentButtonClasses = 'text-white bg-pastel-blue-600 border border-pastel-blue-600 hover:bg-pastel-blue-700';
 
   return (
     <nav className="flex items-center justify-center gap-2 mt-6" aria-label="Pagination">
@@ -70,7 +70,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
       {startPage > 1 && (
         <>
           <button onClick={() => onPageChange(1)} className={`${baseButtonClasses} ${enabledClasses}`}>1</button>
-          {startPage > 2 && <span className="px-2 text-slate-500">...</span>}
+          {startPage > 2 && <span className="px-2 text-text-light">...</span>}
         </>
       )}
 
@@ -82,7 +82,7 @@ export const Pagination: React.FC<PaginationProps> = ({ currentPage, totalPages,
       
       {endPage < totalPages && (
         <>
-          {endPage < totalPages - 1 && <span className="px-2 text-slate-500">...</span>}
+          {endPage < totalPages - 1 && <span className="px-2 text-text-light">...</span>}
           <button onClick={() => onPageChange(totalPages)} className={`${baseButtonClasses} ${enabledClasses}`}>{totalPages}</button>
         </>
       )}

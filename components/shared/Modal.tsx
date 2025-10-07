@@ -6,7 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  size?: 'md' | 'lg' | 'xl' | '2xl' | '4xl';
+  size?: 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl';
 }
 
 const sizeClasses = {
@@ -14,7 +14,11 @@ const sizeClasses = {
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '3xl': 'max-w-3xl',
     '4xl': 'max-w-4xl',
+    '5xl': 'max-w-5xl',
+    '6xl': 'max-w-6xl',
+    '7xl': 'max-w-7xl',
 };
 
 export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
@@ -44,8 +48,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         className={`bg-white rounded-lg shadow-xl w-full ${sizeClasses[size]} transform animate-modal-in flex flex-col max-h-[90vh]`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-slate-200 flex-shrink-0">
-          <h3 id="modal-title" className="text-2xl font-semibold text-slate-800">
+        <div className="p-6 border-b border-cream-200 flex-shrink-0">
+          <h3 id="modal-title" className="text-2xl font-semibold text-text-dark">
             {title}
           </h3>
         </div>

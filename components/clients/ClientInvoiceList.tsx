@@ -22,8 +22,8 @@ export const ClientInvoiceList: React.FC<ClientInvoiceListProps> = memo(({ invoi
     return (
         <div className="overflow-x-auto">
             <table className="w-full">
-                <thead className="text-left text-sm font-semibold text-slate-600 uppercase bg-slate-100">
-                    <tr>
+                <thead className="text-left text-sm font-semibold text-text-medium uppercase bg-cream-100 border-b-2 border-cream-300">
+                    <tr className="divide-x divide-cream-200">
                         <th className="px-4 py-3">Número</th>
                         <th className="px-4 py-3">Fecha</th>
                         <th className="px-4 py-3">Estado</th>
@@ -31,10 +31,10 @@ export const ClientInvoiceList: React.FC<ClientInvoiceListProps> = memo(({ invoi
                         <th className="px-4 py-3 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-cream-200">
                      {invoices.filter(inv => inv.status !== 'BORRADOR').length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="text-center py-10 text-slate-500 text-base">
+                            <td colSpan={5} className="text-center py-10 text-text-medium text-base">
                                 No se encontraron facturas emitidas para este cliente.
                             </td>
                         </tr>
@@ -43,15 +43,15 @@ export const ClientInvoiceList: React.FC<ClientInvoiceListProps> = memo(({ invoi
                             const pendingCheques = getPendingChequesForInvoice(inv.id);
                             
                             return (
-                                <tr key={inv.id} className="hover:bg-slate-50 text-base">
-                                    <td className="px-4 py-3 font-mono text-slate-700">{inv.pos}-{inv.number}</td>
-                                    <td className="px-4 py-3 text-slate-600">{new Date(inv.createdAt).toLocaleDateString()}</td>
+                                <tr key={inv.id} className="divide-x divide-cream-200 hover:bg-cream-100 text-base odd:bg-white even:bg-cream-50">
+                                    <td className="px-4 py-3 font-mono text-text-medium">{inv.pos}-{inv.number}</td>
+                                    <td className="px-4 py-3 text-text-medium">{new Date(inv.createdAt).toLocaleDateString()}</td>
                                     <td className="px-4 py-3">
                                         <StatusPill variant={statusMap[inv.status].variant}>
                                             {statusMap[inv.status].label}
                                         </StatusPill>
                                     </td>
-                                    <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatARS(inv.totals.totalARS)}</td>
+                                    <td className="px-4 py-3 text-right font-semibold text-text-dark">{formatARS(inv.totals.totalARS)}</td>
                                     <td className="px-4 py-3">
                                         <div className="flex items-center justify-center gap-3">
                                             {inv.status === 'PENDIENTE_PAGO' && (
@@ -59,14 +59,14 @@ export const ClientInvoiceList: React.FC<ClientInvoiceListProps> = memo(({ invoi
                                                     {pendingCheques.length > 0 && (
                                                         <button 
                                                             onClick={() => onManageCheques(inv)} 
-                                                            className="font-medium text-blue-600 hover:underline text-base"
+                                                            className="font-medium text-pastel-blue-600 hover:underline text-base"
                                                         >
                                                             Gestionar Cheques ({pendingCheques.length})
                                                         </button>
                                                     )}
                                                     <button 
                                                         onClick={() => onPay(inv)} 
-                                                        className="font-medium text-green-600 hover:underline text-base"
+                                                        className="font-medium text-pastel-green-600 hover:underline text-base"
                                                     >
                                                         Registrar Pago
                                                     </button>

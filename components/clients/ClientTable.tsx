@@ -11,10 +11,10 @@ interface ClientTableProps {
 
 export const ClientTable: React.FC<ClientTableProps> = memo(({ clients }) => {
   return (
-    <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-slate-200">
+    <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-cream-200">
       <table className="w-full text-base text-left">
-        <thead className="text-sm text-slate-600 uppercase bg-slate-100 font-semibold tracking-wider">
-          <tr>
+        <thead className="text-sm text-text-medium uppercase bg-cream-100 font-semibold tracking-wider border-b-2 border-cream-300">
+          <tr className="divide-x divide-cream-200">
             <th scope="col" className="px-6 py-4">Nombre</th>
             <th scope="col" className="px-6 py-4">Documento</th>
             <th scope="col" className="px-6 py-4">Cond. IVA</th>
@@ -24,22 +24,22 @@ export const ClientTable: React.FC<ClientTableProps> = memo(({ clients }) => {
             <th scope="col" className="px-6 py-4 text-center">Acciones</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-cream-200">
           {clients.map((client) => (
-            <tr key={client.id} className="bg-white border-b hover:bg-slate-50">
-              <th scope="row" className="px-6 py-4 font-medium text-slate-900 whitespace-nowrap">{client.name}</th>
-              <td className="px-6 py-4 text-slate-700">{client.docType} {client.docNumber}</td>
-              <td className="px-6 py-4 text-slate-700">{client.ivaCondition}</td>
-              <td className="px-6 py-4 text-slate-700">{client.email}</td>
+            <tr key={client.id} className="divide-x divide-cream-200 hover:bg-cream-100 odd:bg-white even:bg-cream-50">
+              <th scope="row" className="px-6 py-4 font-medium text-text-dark whitespace-nowrap">{client.name}</th>
+              <td className="px-6 py-4 text-text-medium">{client.docType} {client.docNumber}</td>
+              <td className="px-6 py-4 text-text-medium">{client.ivaCondition}</td>
+              <td className="px-6 py-4 text-text-medium">{client.email}</td>
               <td className="px-6 py-4">
                 <StatusPill variant={client.debt > 0 ? 'danger' : 'success'}>
                     {client.debt > 0 ? 'Con Deuda' : 'Sin Deuda'}
                 </StatusPill>
               </td>
-              <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-red-600' : 'text-slate-800'}`}>{formatARS(client.debt)}</td>
+              <td className={`px-6 py-4 text-right font-semibold ${client.debt > 0 ? 'text-pastel-red-600' : 'text-text-dark'}`}>{formatARS(client.debt)}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center justify-center gap-4">
-                  <Router.Link to={`/clientes/${client.id}`} className="font-medium text-blue-600 hover:underline text-base">Ver Detalle</Router.Link>
+                  <Router.Link to={`/clientes/${client.id}`} className="font-medium text-pastel-blue-600 hover:underline text-base">Ver Detalle</Router.Link>
                 </div>
               </td>
             </tr>

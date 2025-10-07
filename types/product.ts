@@ -4,18 +4,19 @@ export type Category = string;
 
 export interface Product {
   id: ProductId;
-  sku: string;              // Stock Keeping Unit, generated automatically if not provided
+  sku: string;
   name: string;
+  brand: string;
   category: Category;
-  priceARS: number;         // Sale price in ARS (gross price for now)
-  stock: number;            // Current units on hand
-  minStock: number;         // Alert threshold
-  active: boolean;          // To deactivate without deleting
-  createdAt: string;        // ISO date string
-  updatedAt: string;        // ISO date string
+  netPrice: number;         // Precio sin IVA
+  vatRate: number;          // Tasa de IVA (e.g., 21 for 21%)
+  stock: number;
+  minStock: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ProductImportResult {
-  successCount: number;
-  errors: { item: any; reason: string }[];
+export interface ProductWithSalePrice extends Product {
+    salePrice: number;
 }

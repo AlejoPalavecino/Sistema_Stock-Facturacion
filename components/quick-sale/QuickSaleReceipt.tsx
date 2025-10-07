@@ -1,8 +1,8 @@
 import React from 'react';
-import { Product } from '../../types';
+import { ProductWithSalePrice } from '../../types';
 import { formatARS } from '../../utils/format';
 
-export interface QuickSaleItem extends Product {
+export interface QuickSaleItem extends ProductWithSalePrice {
     qty: number;
 }
 
@@ -35,8 +35,8 @@ export const QuickSaleReceipt: React.FC<QuickSaleReceiptProps> = ({ items, total
           <div key={item.id} className="text-xs">
             <p className="font-semibold">{item.name}</p>
             <div className="flex justify-between">
-              <span>{`${item.qty} x ${formatARS(item.priceARS)}`}</span>
-              <span className="font-medium">{formatARS(item.priceARS * item.qty)}</span>
+              <span>{`${item.qty} x ${formatARS(item.salePrice)}`}</span>
+              <span className="font-medium">{formatARS(item.salePrice * item.qty)}</span>
             </div>
           </div>
         ))}

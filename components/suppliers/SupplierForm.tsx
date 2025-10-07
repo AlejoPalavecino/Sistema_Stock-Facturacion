@@ -1,7 +1,9 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, memo, useCallback } from 'react';
 import { Supplier, IvaCondition, PaymentTerms, DocType } from '../../types';
 import { validateDoc, normalizeDocNumber } from '../../utils/doc';
 import { isValidCBU, normalizeCBU, normalizeAlias } from '../../utils/bank';
+import * as suppliersRepo from '../../services/db/suppliersRepo';
+import { CheckCircleIcon, ExclamationCircleIcon } from '../shared/Icons.tsx';
 
 interface SupplierFormProps {
   supplierToEdit?: Supplier;
@@ -30,6 +32,8 @@ const initialFormData: Omit<Supplier, 'id' | 'createdAt' | 'updatedAt'> = {
 export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit, onSave, onCancel }) => {
   const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isCheckingCuit, setIsCheckingCuit] = useState(false);
+  const [cuitIsValid, setCuitIsValid] = useState(false);
 
   useEffect(() => {
     if (supplierToEdit) {
@@ -37,10 +41,61 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
           ...supplierToEdit,
           bank: supplierToEdit.bank || { bankName: '', cbu: '', alias: '' }
       });
+      // Assume existing CUIT is valid on load
+      if (supplierToEdit.cuit) {
+        setCuitIsValid(true);
+      }
     } else {
       setFormData(initialFormData);
+      setCuitIsValid(false);
     }
   }, [supplierToEdit]);
+  
+  const validateCuit = useCallback(async (cuit: string) => {
+      setIsCheckingCuit(true);
+      setCuitIsValid(false);
+      setErrors(prev => ({...prev, cuit: undefined}));
+
+      const docValidation = validateDoc('CUIT', cuit);
+      if (!docValidation.ok) {
+          setErrors(prev => ({ ...prev, cuit: docValidation.message }));
+          setIsCheckingCuit(false);
+          return;
+      }
+      
+      try {
+          const exists = await suppliersRepo.checkCuitExists(cuit, supplierToEdit?.id);
+          if (exists) {
+              setErrors(prev => ({ ...prev, cuit: 'Este CUIT ya está registrado.' }));
+          } else {
+              setErrors(prev => ({...prev, cuit: undefined}));
+              setCuitIsValid(true);
+          }
+      } catch (e) {
+          setErrors(prev => ({ ...prev, cuit: 'No se pudo verificar el CUIT.' }));
+      } finally {
+          setIsCheckingCuit(false);
+      }
+  }, [supplierToEdit?.id]);
+
+  useEffect(() => {
+    if (supplierToEdit && formData.cuit === supplierToEdit.cuit) {
+      return;
+    }
+      
+    const handler = setTimeout(() => {
+      if (formData.docType === 'CUIT' && formData.cuit) {
+        validateCuit(formData.cuit);
+      } else {
+        setErrors(prev => ({...prev, cuit: undefined}));
+        setCuitIsValid(false);
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [formData.cuit, formData.docType, supplierToEdit, validateCuit]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -57,7 +112,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
         newErrors.cbu = 'El CBU debe tener 22 dígitos.';
     }
 
-    setErrors(newErrors);
+    setErrors(prev => ({ ...prev, ...newErrors }));
     return Object.keys(newErrors).length === 0;
   };
 
@@ -92,24 +147,24 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validate()) {
+    if (validate() && !errors.cuit && !isCheckingCuit) {
       onSave(formData);
     }
   };
 
-  const formFieldClasses = "block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:ring-blue-500 focus:border-blue-500";
-  const labelClasses = "block mb-1.5 text-base font-medium text-slate-700";
+  const formFieldClasses = "block w-full px-3 py-2 text-base text-text-dark bg-white border border-cream-300 rounded-lg placeholder-text-light focus:ring-pastel-blue-500 focus:border-pastel-blue-500";
+  const labelClasses = "block mb-1.5 text-base font-medium text-text-medium";
 
   return (
-    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-200">
-      <h2 className="text-2xl font-bold text-slate-800 mb-6">{supplierToEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
+    <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-cream-200">
+      <h2 className="text-2xl font-bold text-text-dark mb-6">{supplierToEdit ? 'Editar Proveedor' : 'Nuevo Proveedor'}</h2>
       <form onSubmit={handleSubmit} noValidate>
-        <h3 className="text-lg font-semibold text-slate-700 border-b pb-2 mb-4">Datos Generales</h3>
+        <h3 className="text-lg font-semibold text-text-medium border-b border-cream-200 pb-2 mb-4">Datos Generales</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-3">
             <label htmlFor="businessName" className={labelClasses}>Razón Social</label>
             <input type="text" id="businessName" name="businessName" className={formFieldClasses} value={formData.businessName} onChange={handleChange} required />
-            {errors.businessName && <p role="alert" className="text-red-600 text-xs mt-1">{errors.businessName}</p>}
+            {errors.businessName && <p role="alert" className="text-pastel-red-600 text-xs mt-1">{errors.businessName}</p>}
           </div>
           
           <div>
@@ -121,8 +176,34 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
           
           <div>
             <label htmlFor="cuit" className={labelClasses}>CUIT</label>
-            <input type="text" id="cuit" name="cuit" className={formFieldClasses} value={formData.cuit} onChange={handleCuitChange} disabled={formData.docType === 'SD'} />
-            {errors.cuit && <p role="alert" className="text-red-600 text-xs mt-1">{errors.cuit}</p>}
+            <div className="relative">
+              <input 
+                type="text" 
+                id="cuit" 
+                name="cuit" 
+                className={`${formFieldClasses} pr-10 ${errors.cuit ? 'border-pastel-red-500 focus:border-pastel-red-500 focus:ring-pastel-red-500' : ''} ${cuitIsValid ? 'border-pastel-green-500 focus:border-pastel-green-500 focus:ring-pastel-green-500' : ''}`}
+                value={formData.cuit} 
+                onChange={handleCuitChange} 
+                disabled={formData.docType === 'SD'} 
+                aria-invalid={!!errors.cuit}
+                aria-describedby="cuit-error"
+              />
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                {isCheckingCuit && (
+                  <svg className="animate-spin h-5 w-5 text-text-light" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                {!isCheckingCuit && cuitIsValid && !errors.cuit && (
+                    <CheckCircleIcon className="h-5 w-5 text-pastel-green-500" />
+                )}
+                {!isCheckingCuit && errors.cuit && (
+                     <ExclamationCircleIcon className="h-5 w-5 text-pastel-red-500" />
+                )}
+              </div>
+            </div>
+            {errors.cuit && <p id="cuit-error" role="alert" className="text-pastel-red-600 text-xs mt-1">{errors.cuit}</p>}
           </div>
 
           <div>
@@ -133,7 +214,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
           </div>
         </div>
         
-        <h3 className="text-lg font-semibold text-slate-700 border-b pb-2 mb-4 mt-8">Datos de Contacto</h3>
+        <h3 className="text-lg font-semibold text-text-medium border-b border-cream-200 pb-2 mb-4 mt-8">Datos de Contacto</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
                 <label htmlFor="contactName" className={labelClasses}>Nombre de Contacto</label>
@@ -142,7 +223,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
             <div>
                 <label htmlFor="email" className={labelClasses}>Email</label>
                 <input type="email" id="email" name="email" className={formFieldClasses} value={formData.email} onChange={handleChange} />
-                {errors.email && <p role="alert" className="text-red-600 text-xs mt-1">{errors.email}</p>}
+                {errors.email && <p role="alert" className="text-pastel-red-600 text-xs mt-1">{errors.email}</p>}
             </div>
             <div>
                 <label htmlFor="phone" className={labelClasses}>Teléfono</label>
@@ -166,7 +247,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
             </div>
         </div>
 
-        <h3 className="text-lg font-semibold text-slate-700 border-b pb-2 mb-4 mt-8">Condiciones y Datos Bancarios</h3>
+        <h3 className="text-lg font-semibold text-text-medium border-b border-cream-200 pb-2 mb-4 mt-8">Condiciones y Datos Bancarios</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
                 <label htmlFor="paymentTerms" className={labelClasses}>Condiciones de Pago</label>
@@ -184,7 +265,7 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
             <div>
                 <label htmlFor="cbu" className={labelClasses}>CBU</label>
                 <input type="text" id="cbu" name="cbu" className={formFieldClasses} value={formData.bank?.cbu || ''} onChange={handleBankChange} />
-                {errors.cbu && <p role="alert" className="text-red-600 text-xs mt-1">{errors.cbu}</p>}
+                {errors.cbu && <p role="alert" className="text-pastel-red-600 text-xs mt-1">{errors.cbu}</p>}
             </div>
             <div>
                 <label htmlFor="alias" className={labelClasses}>Alias</label>
@@ -192,15 +273,15 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
             </div>
         </div>
         
-        <h3 className="text-lg font-semibold text-slate-700 border-b pb-2 mb-4 mt-8">Otros Datos</h3>
+        <h3 className="text-lg font-semibold text-text-medium border-b border-cream-200 pb-2 mb-4 mt-8">Otros Datos</h3>
         <div className="grid grid-cols-1 gap-6">
           <div>
             <label htmlFor="notes" className={labelClasses}>Notas</label>
             <textarea id="notes" name="notes" rows={3} className={formFieldClasses} value={formData.notes} onChange={handleChange}></textarea>
           </div>
           <div>
-            <label className="flex items-center text-base font-medium text-slate-700">
-              <input type="checkbox" name="active" className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked={formData.active} onChange={handleChange} />
+            <label className="flex items-center text-base font-medium text-text-medium">
+              <input type="checkbox" name="active" className="h-4 w-4 rounded border-cream-300 text-pastel-blue-600 focus:ring-pastel-blue-500" checked={formData.active} onChange={handleChange} />
               <span className="ml-2">Proveedor Activo</span>
             </label>
           </div>
@@ -208,8 +289,10 @@ export const SupplierForm: React.FC<SupplierFormProps> = memo(({ supplierToEdit,
 
 
         <div className="mt-8 flex items-center justify-end gap-4">
-          <button type="button" onClick={onCancel} className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100">Cancelar</button>
-          <button type="submit" className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700">Guardar Proveedor</button>
+          <button type="button" onClick={onCancel} className="btn btn-secondary">Cancelar</button>
+          <button type="submit" disabled={isCheckingCuit} className="btn btn-primary disabled:opacity-50 disabled:cursor-wait">
+            {isCheckingCuit ? 'Verificando...' : 'Guardar Proveedor'}
+          </button>
         </div>
       </form>
     </div>

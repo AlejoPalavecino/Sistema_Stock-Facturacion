@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import * as clientsRepo from '../../services/db/clientsRepo.ts';
 import { Client } from '../../types/client.ts';
@@ -50,32 +49,32 @@ export const ClientPicker: React.FC<ClientPickerProps> = ({ onSelectClient }) =>
         placeholder="Buscar cliente por nombre o documento..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-600 focus:ring-blue-500 focus:border-blue-500 mb-4"
+        className="search-input block w-full mb-4"
       />
       
-      <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-lg mb-4">
+      <div className="max-h-60 overflow-y-auto border border-cream-200 rounded-lg mb-4">
         {loading ? (
-            <p className="p-4 text-center text-slate-500">Cargando clientes...</p>
+            <p className="p-4 text-center text-text-medium">Cargando clientes...</p>
         ) : (
-            <ul className="divide-y divide-slate-200">
+            <ul className="divide-y divide-cream-200">
                 {filteredClients.length > 0 ? filteredClients.map(client => (
                     <li 
                       key={client.id} 
                       onClick={() => onSelectClient(client)}
-                      className="p-3 cursor-pointer hover:bg-blue-50"
+                      className="p-3 cursor-pointer hover:bg-cream-50"
                     >
-                      <p className="font-medium text-slate-800">{client.name}</p>
-                      <p className="text-xs text-slate-500">{client.docType}: {client.docNumber}</p>
+                      <p className="font-medium text-text-dark">{client.name}</p>
+                      <p className="text-xs text-text-medium">{client.docType}: {client.docNumber}</p>
                     </li>
                 )) : (
-                    <li className="p-4 text-center text-slate-500">No se encontraron clientes.</li>
+                    <li className="p-4 text-center text-text-medium">No se encontraron clientes.</li>
                 )}
             </ul>
         )}
       </div>
       
       <div className="text-center">
-        <button onClick={() => setShowQuickAdd(!showQuickAdd)} className="text-sm font-semibold text-blue-600 hover:underline">
+        <button onClick={() => setShowQuickAdd(!showQuickAdd)} className="text-sm font-semibold text-pastel-blue-600 hover:underline">
           {showQuickAdd ? 'Cancelar Alta Rápida' : 'Alta Rápida de Cliente'}
         </button>
       </div>
@@ -107,20 +106,23 @@ const QuickAddForm: React.FC<{ onClientCreated: (client: Client) => void }> = ({
         }
     };
 
+    const formFieldClasses = "block w-full px-3 py-2 text-base text-text-dark bg-white border border-cream-300 rounded-lg placeholder-text-light focus:ring-pastel-blue-500 focus:border-pastel-blue-500";
+    const labelClasses = "block mb-1 text-sm font-medium text-text-medium";
+
     return (
-        <form onSubmit={handleSubmit} className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+        <form onSubmit={handleSubmit} className="mt-4 p-4 bg-cream-100 border border-cream-200 rounded-lg">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div>
-                    <label className="block mb-1 text-sm font-medium text-slate-600">Nombre</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-600 focus:ring-blue-500 focus:border-blue-500" />
+                    <label className={labelClasses}>Nombre</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} className={formFieldClasses} />
                 </div>
                  <div>
-                    <label className="block mb-1 text-sm font-medium text-slate-600">Nº Documento</label>
-                    <input type="text" value={docNumber} onChange={e => setDocNumber(e.target.value)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-600 focus:ring-blue-500 focus:border-blue-500" />
+                    <label className={labelClasses}>Nº Documento</label>
+                    <input type="text" value={docNumber} onChange={e => setDocNumber(e.target.value)} className={formFieldClasses} />
                 </div>
                 <div>
-                    <label className="block mb-1 text-sm font-medium text-slate-600">Tipo Documento</label>
-                    <select value={docType} onChange={e => setDocType(e.target.value as any)} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                    <label className={labelClasses}>Tipo Documento</label>
+                    <select value={docType} onChange={e => setDocType(e.target.value as any)} className={formFieldClasses}>
                         <option value="DNI">DNI</option>
                         <option value="CUIT">CUIT</option>
                         <option value="CUIL">CUIL</option>
@@ -128,9 +130,9 @@ const QuickAddForm: React.FC<{ onClientCreated: (client: Client) => void }> = ({
                     </select>
                 </div>
             </div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {error && <p className="text-pastel-red-500 text-sm mt-2">{error}</p>}
             <div className="mt-4 text-right">
-                <button type="submit" className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-blue-700 text-sm">
+                <button type="submit" className="btn btn-primary text-sm py-2 px-4">
                     Crear y Seleccionar
                 </button>
             </div>

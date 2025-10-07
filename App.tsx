@@ -9,7 +9,7 @@ const App: React.FC = () => {
   const [isQuickSaleOpen, setQuickSaleOpen] = useState(false);
 
   return (
-    <div className="antialiased text-slate-800">
+    <div className="antialiased text-text-dark">
       <ErrorBoundary>
         <AppRouter />
       </ErrorBoundary>

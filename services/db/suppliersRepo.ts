@@ -126,3 +126,16 @@ export const batchCreate = async (data: SupplierImportRow[]): Promise<SupplierIm
     }
     return result;
 };
+
+export const checkCuitExists = async (cuit: string, excludeId?: string): Promise<boolean> => {
+    const normalizedCuit = normalizeDocNumber(cuit);
+    if (!normalizedCuit) return false;
+
+    const allSuppliers = await list();
+    const existing = allSuppliers.find(s => {
+        if (s.id === excludeId) return false; // Don't check against itself
+        return normalizeDocNumber(s.cuit) === normalizedCuit && s.docType === 'CUIT';
+    });
+    
+    return !!existing;
+};

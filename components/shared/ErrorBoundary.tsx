@@ -1,5 +1,4 @@
-
-import React from 'react';
+import * as React from 'react';
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean };

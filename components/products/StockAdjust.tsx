@@ -7,7 +7,7 @@ interface StockAdjustProps {
 }
 
 export const StockAdjust: React.FC<StockAdjustProps> = ({ stock, onAdjust }) => {
-  const buttonClasses = "p-1.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed";
+  const buttonClasses = "p-1.5 text-text-medium bg-cream-100 hover:bg-cream-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-pastel-blue-500 disabled:opacity-50 disabled:cursor-not-allowed";
 
   return (
     <div className="flex items-center gap-1.5">

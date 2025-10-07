@@ -1,24 +1,25 @@
 import React, { useMemo, useState } from 'react';
+// FIX: The `ProductWithSalePrice` type is imported from the central types file, not from the hook where it is not exported. The unused `Product` import was also removed.
 import { useProducts } from '../../hooks/useProducts.ts';
+import { ProductWithSalePrice } from '../../types';
 import { useCategories } from '../../hooks/useCategories.ts';
-import { Product } from '../../types/product.ts';
 import { formatARS } from '../../utils/format.ts';
 import { SearchIcon } from '../shared/Icons.tsx';
 import { QuickAddProductForm } from '../products/QuickAddProductForm.tsx';
 
 interface ProductPickerProps {
-  onSelectProduct: (product: Product) => void;
+  onSelectProduct: (product: ProductWithSalePrice) => void;
   allowZeroStock?: boolean;
 }
 
 export const ProductPicker: React.FC<ProductPickerProps> = ({ onSelectProduct, allowZeroStock = false }) => {
-  const { products, loading, error, searchQuery, setSearchQuery } = useProducts();
+  const { products, loading, error, searchQuery, setSearchQuery } = useProducts({ disablePagination: true });
   const { categories } = useCategories();
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   
-  const availableProducts = useMemo(() => {
-    return products.filter(p => p.active && (allowZeroStock || p.stock > 0));
-  }, [products, allowZeroStock]);
+  const activeProducts = useMemo(() => {
+    return products.filter(p => p.active);
+  }, [products]);
 
   return (
     <div>
@@ -31,38 +32,45 @@ export const ProductPicker: React.FC<ProductPickerProps> = ({ onSelectProduct, a
               placeholder="Buscar producto por nombre o SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 text-base text-slate-900 border border-slate-300 rounded-lg bg-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="search-input block w-full"
           />
       </div>
       {loading && <p>Cargando productos...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <p className="text-pastel-red-500">{error}</p>}
       
-      <div className="max-h-80 overflow-y-auto border border-slate-200 rounded-lg">
-        <ul className="divide-y divide-slate-200">
-          {availableProducts.length === 0 && !loading && (
-            <li className="p-4 text-center text-slate-500">No se encontraron productos disponibles.</li>
+      <div className="max-h-80 overflow-y-auto border border-cream-200 rounded-lg">
+        <ul className="divide-y divide-cream-200">
+          {activeProducts.length === 0 && !loading && (
+            <li className="p-4 text-center text-text-medium">No se encontraron productos disponibles.</li>
           )}
-          {availableProducts.map(product => (
-            <li 
-              key={product.id} 
-              onClick={() => onSelectProduct(product)}
-              className="p-3 flex justify-between items-center cursor-pointer hover:bg-blue-50"
-            >
-              <div>
-                <p className="font-medium text-slate-800">{product.name}</p>
-                <p className="text-xs text-slate-500 font-mono">{product.sku}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-slate-900">{formatARS(product.priceARS)}</p>
-                <p className="text-xs text-slate-500">Stock: {product.stock}</p>
-              </div>
-            </li>
-          ))}
+          {activeProducts.map(product => {
+            const isOutOfStock = !allowZeroStock && product.stock <= 0;
+            return (
+                <li 
+                    key={product.id} 
+                    onClick={isOutOfStock ? undefined : () => onSelectProduct(product)}
+                    className={`p-3 flex justify-between items-center transition-colors ${isOutOfStock ? 'opacity-60 cursor-not-allowed bg-cream-50' : 'cursor-pointer hover:bg-cream-100'}`}
+                    aria-disabled={isOutOfStock}
+                    title={isOutOfStock ? 'Producto sin stock' : ''}
+                >
+                    <div>
+                        <p className="font-medium text-text-dark">{product.name}</p>
+                        <p className="text-xs text-text-light font-mono">{product.sku}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="font-semibold text-text-dark">{formatARS(product.salePrice)}</p>
+                        <p className={`text-xs font-semibold ${isOutOfStock ? 'text-pastel-red-600' : 'text-text-medium'}`}>
+                            Stock: {product.stock}
+                        </p>
+                    </div>
+                </li>
+            );
+          })}
         </ul>
       </div>
 
       <div className="text-center mt-4">
-        <button onClick={() => setShowQuickAdd(!showQuickAdd)} className="text-sm font-semibold text-blue-600 hover:underline">
+        <button onClick={() => setShowQuickAdd(!showQuickAdd)} className="text-sm font-semibold text-pastel-blue-600 hover:underline">
           {showQuickAdd ? 'Cancelar Alta Rápida' : 'Alta Rápida de Producto'}
         </button>
       </div>

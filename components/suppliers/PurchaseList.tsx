@@ -20,8 +20,8 @@ export const PurchaseList: React.FC<PurchaseListProps> = memo(({ purchases, onPa
     return (
         <div className="overflow-x-auto">
             <table className="w-full">
-                <thead className="text-left text-sm font-semibold text-slate-600 uppercase bg-slate-100">
-                    <tr>
+                <thead className="text-left text-sm font-semibold text-text-medium uppercase bg-cream-100 border-b-2 border-cream-300">
+                    <tr className="divide-x divide-cream-200">
                         <th className="px-4 py-3">Nº Factura</th>
                         <th className="px-4 py-3">Fecha</th>
                         <th className="px-4 py-3">Estado</th>
@@ -29,28 +29,28 @@ export const PurchaseList: React.FC<PurchaseListProps> = memo(({ purchases, onPa
                         <th className="px-4 py-3 text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-cream-200">
                      {purchases.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="text-center py-10 text-slate-500 text-base">
+                            <td colSpan={5} className="text-center py-10 text-text-medium text-base">
                                 No se encontraron facturas de compra.
                             </td>
                         </tr>
                     ) : (
                         purchases.map(p => (
-                            <tr key={p.id} className="hover:bg-slate-50 text-base">
-                                <td className="px-4 py-3 font-mono text-slate-700">{p.invoiceNumber}</td>
-                                <td className="px-4 py-3 text-slate-600">{new Date(p.date).toLocaleDateString()}</td>
+                            <tr key={p.id} className="divide-x divide-cream-200 hover:bg-cream-100 text-base odd:bg-white even:bg-cream-50">
+                                <td className="px-4 py-3 font-mono text-text-medium">{p.invoiceNumber}</td>
+                                <td className="px-4 py-3 text-text-medium">{new Date(p.date).toLocaleDateString()}</td>
                                 <td className="px-4 py-3">
                                     <StatusPill variant={statusMap[p.status].variant}>
                                         {statusMap[p.status].label}
                                     </StatusPill>
                                 </td>
-                                <td className="px-4 py-3 text-right font-semibold text-slate-800">{formatARS(p.totalAmountARS)}</td>
+                                <td className="px-4 py-3 text-right font-semibold text-text-dark">{formatARS(p.totalAmountARS)}</td>
                                 <td className="px-4 py-3">
                                     <div className="flex items-center justify-center gap-3">
                                         {p.status === 'PENDIENTE' && (
-                                            <button onClick={() => onPay(p)} className="font-medium text-green-600 hover:underline text-base">
+                                            <button onClick={() => onPay(p)} className="font-medium text-pastel-green-600 hover:underline text-base">
                                                 Registrar Pago
                                             </button>
                                         )}

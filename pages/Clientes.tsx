@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import * as Router from 'react-router-dom';
 import { useClients } from '../hooks/useClients.ts';
@@ -50,11 +51,11 @@ const Clientes: React.FC = () => {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-cream-100 min-h-screen">
       <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <PageHeader title="Clientes" backTo="/" />
 
-        {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
+        {error && <div className="bg-pastel-red-100 border border-pastel-red-500 text-pastel-red-700 px-4 py-3 rounded relative mb-4" role="alert">{error}</div>}
         
         <>
           <ActionBar
@@ -62,28 +63,28 @@ const Clientes: React.FC = () => {
             onSearchChange={setSearchQuery}
             searchPlaceholder="Buscar por nombre o documento..."
           >
-            <button className="flex items-center justify-center bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors" onClick={() => setNewClientModalOpen(true)}>
+            <button className="btn btn-primary" onClick={() => setNewClientModalOpen(true)}>
               <PlusIcon className="h-5 w-5 mr-2" /> Nuevo Cliente
             </button>
           </ActionBar>
 
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-wrap items-center gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-cream-200 mb-6 flex flex-wrap items-center gap-4">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="form-select w-full sm:w-auto text-base text-slate-900 bg-white border border-slate-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 px-3 py-2.5"
+              className="form-select w-full sm:w-auto text-base text-text-dark bg-white border border-cream-300 rounded-lg focus:ring-pastel-blue-500 focus:border-pastel-blue-500 px-3 py-2.5"
             >
               <option value="name">Ordenar por Nombre</option>
               <option value="debt">Ordenar por Deuda</option>
               <option value="docNumber">Ordenar por Documento</option>
               <option value="createdAt">Ordenar por Fecha Creación</option>
             </select>
-            <label className="flex items-center text-base font-medium text-slate-700">
+            <label className="flex items-center text-base font-medium text-text-medium">
               <input
                 type="checkbox"
                 checked={onlyWithDebt}
                 onChange={(e) => setOnlyWithDebt(e.target.checked)}
-                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4 rounded border-cream-300 text-pastel-blue-600 focus:ring-pastel-blue-500"
               />
               <span className="ml-2">Mostrar solo con deuda</span>
             </label>
@@ -111,7 +112,7 @@ const Clientes: React.FC = () => {
         </>
       </div>
 
-      <Modal isOpen={isNewClientModalOpen} onClose={() => setNewClientModalOpen(false)} title="Nuevo Cliente" size="4xl">
+      <Modal isOpen={isNewClientModalOpen} onClose={() => setNewClientModalOpen(false)} title="Nuevo Cliente" size="5xl">
          <ClientForm
             onSave={handleFormSave}
             onCancel={() => setNewClientModalOpen(false)}

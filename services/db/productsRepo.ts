@@ -1,5 +1,4 @@
-
-import { Product, ProductId, Category, ProductImportResult } from '../../types/product.ts';
+import { Product, ProductId, Category } from '../../types/product.ts';
 import { generarSKU } from '../../utils/sku.ts';
 import * as categoriesRepo from './categoriesRepo';
 import * as historyRepo from './historyRepo';
@@ -31,7 +30,8 @@ export const create = async (
     const productData = {
         ...data,
         sku,
-        priceARS: Math.max(0, data.priceARS),
+        netPrice: Math.max(0, data.netPrice),
+        vatRate: Math.max(0, data.vatRate),
         stock: Math.max(0, data.stock),
         minStock: Math.max(0, data.minStock),
     };
@@ -122,58 +122,6 @@ export const adjustStock = async (id: ProductId, delta: number, type: StockMovem
     });
 
     return updatedProduct;
-};
-
-
-export const batchCreate = async (data: any[]): Promise<ProductImportResult> => {
-    const results: ProductImportResult = {
-        successCount: 0,
-        errors: [],
-    };
-    const validCategories = await categoriesRepo.list();
-
-    for (const item of data) {
-        if (!item || typeof item !== 'object') {
-            results.errors.push({ item, reason: 'El registro no es un objeto válido.' });
-            continue;
-        }
-
-        const normalizedItem: any = {};
-        for (const key in item) {
-            normalizedItem[key.toLowerCase()] = item[key];
-        }
-
-        const { name, category, pricears: priceARS, stock, minstock: minStock, sku, active } = normalizedItem;
-
-        if (!name || typeof name !== 'string' || !category || !validCategories.includes(category) || typeof priceARS !== 'number' || typeof stock !== 'number' || typeof minStock !== 'number') {
-            results.errors.push({ item, reason: 'Faltan campos obligatorios o tienen un formato incorrecto (name, category, priceARS, stock, minStock).' });
-            continue;
-        }
-        
-        try {
-            const productData = {
-                name: name.trim(),
-                category: category as Category,
-                priceARS, stock, minStock,
-                sku: (sku && typeof sku === 'string') ? sku : undefined,
-                active: typeof active === 'boolean' ? active : true,
-            };
-
-            await create(productData);
-            
-            await historyRepo.overwriteLast({
-                type: 'import',
-                notes: 'Importado desde archivo.'
-            });
-
-            results.successCount++;
-        } catch (error) {
-            const reason = error instanceof Error ? error.message : 'Error desconocido.';
-            results.errors.push({ item, reason });
-        }
-    }
-    
-    return Promise.resolve(results);
 };
 
 export const isCategoryInUse = async (categoryName: Category): Promise<boolean> => {

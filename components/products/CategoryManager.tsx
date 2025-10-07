@@ -38,7 +38,7 @@ export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categorie
   
   return (
     <div>
-      {error && <p role="alert" className="text-red-600 text-sm mb-4">{error}</p>}
+      {error && <p role="alert" className="text-pastel-red-600 text-sm mb-4">{error}</p>}
       
       <form onSubmit={handleAdd} className="flex gap-2 mb-4">
         <input
@@ -46,18 +46,18 @@ export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categorie
           value={newCategory}
           onChange={(e) => setNewCategory(e.target.value)}
           placeholder="Nueva categoría..."
-          className="flex-grow w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:ring-blue-500 focus:border-blue-500"
+          className="flex-grow w-full px-3 py-2 text-base text-text-dark bg-white border border-cream-300 rounded-lg placeholder-text-light focus:ring-pastel-blue-500 focus:border-pastel-blue-500"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+          className="btn btn-primary"
         >
           Añadir
         </button>
       </form>
 
-      <div className="max-h-80 overflow-y-auto border border-slate-200 rounded-lg">
-        <ul className="divide-y divide-slate-200">
+      <div className="max-h-80 overflow-y-auto border border-cream-200 rounded-lg">
+        <ul className="divide-y divide-cream-200">
           {categories.map(cat => (
             <li key={cat} className="p-3 flex items-center justify-between">
               {editingCategory?.oldName === cat ? (
@@ -65,28 +65,28 @@ export const CategoryManager: React.FC<CategoryManagerProps> = memo(({ categorie
                   type="text"
                   value={editingCategory.newName}
                   onChange={(e) => setEditingCategory({ ...editingCategory, newName: e.target.value })}
-                  className="flex-grow px-2 py-1 text-base text-slate-900 bg-white border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-grow px-2 py-1 text-base text-text-dark bg-white border border-cream-300 rounded-md focus:ring-pastel-blue-500 focus:border-pastel-blue-500"
                 />
               ) : (
-                <span className="text-slate-700">{cat}</span>
+                <span className="text-text-medium">{cat}</span>
               )}
 
               <div className="flex gap-1.5 ml-2">
                 {editingCategory?.oldName === cat ? (
                   <>
-                    <button onClick={handleSaveEdit} className="p-1.5 text-slate-500 hover:text-green-600 hover:bg-green-100 rounded-md transition-colors" title="Guardar">
+                    <button onClick={handleSaveEdit} className="p-1.5 text-text-light hover:text-pastel-green-600 hover:bg-pastel-green-100 rounded-md transition-colors" title="Guardar">
                       <SaveIcon />
                     </button>
-                    <button onClick={handleCancelEdit} className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-md transition-colors" title="Cancelar">
+                    <button onClick={handleCancelEdit} className="p-1.5 text-text-light hover:text-text-medium hover:bg-cream-200 rounded-md transition-colors" title="Cancelar">
                       <CancelIcon />
                     </button>
                   </>
                 ) : (
                   <>
-                    <button onClick={() => handleStartEdit(cat)} className="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-100 rounded-md transition-colors" title="Editar">
+                    <button onClick={() => handleStartEdit(cat)} className="p-1.5 text-text-light hover:text-pastel-blue-600 hover:bg-pastel-blue-100 rounded-md transition-colors" title="Editar">
                       <EditIcon className="h-4 w-4" />
                     </button>
-                    <button onClick={() => onDelete(cat)} className="p-1.5 text-slate-500 hover:text-red-600 hover:bg-red-100 rounded-md transition-colors" title="Eliminar">
+                    <button onClick={() => onDelete(cat)} className="p-1.5 text-text-light hover:text-pastel-red-600 hover:bg-pastel-red-100 rounded-md transition-colors" title="Eliminar">
                       <DeleteIcon className="h-4 w-4" />
                     </button>
                   </>

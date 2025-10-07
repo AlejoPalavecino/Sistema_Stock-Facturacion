@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect, useCallback } from 'react';
-import { Purchase, PurchaseItem, Supplier, Product } from '../../types';
+import { Purchase, PurchaseItem, Supplier, Product, ProductWithSalePrice } from '../../types';
 import { Modal } from '../shared/Modal.tsx';
 import { SupplierPicker } from './SupplierPicker.tsx';
 import { ProductPicker } from '../invoicing/ProductPicker.tsx';
 import { PurchaseItemsTable } from './PurchaseItemsTable.tsx';
 import { formatARS } from '../../utils/format.ts';
 import * as purchasesRepo from '../../services/db/purchasesRepo.ts';
+import { PlusIcon } from '../shared/Icons.tsx';
 
 interface PurchaseFormProps {
   onSave: () => void;
@@ -42,7 +44,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onSave, onCancel }) 
     setSupplierPickerOpen(false);
   };
 
-  const handleProductSelect = (product: Product) => {
+  const handleProductSelect = (product: ProductWithSalePrice) => {
     const newItem: PurchaseItem = {
       productId: product.id,
       sku: product.sku,
@@ -80,30 +82,33 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onSave, onCancel }) 
     }
   };
 
+  const formFieldClasses = "block w-full px-3 py-2 text-base text-text-dark bg-white border border-cream-300 rounded-lg focus:ring-pastel-blue-500 focus:border-pastel-blue-500";
+  const labelClasses = "block mb-1.5 text-base font-medium text-text-medium";
+
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
-          <label className="block mb-1.5 text-base font-medium text-slate-600">Proveedor</label>
+          <label className={labelClasses}>Proveedor</label>
           <div 
             onClick={() => setSupplierPickerOpen(true)} 
-            className="w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg min-h-[42px] flex items-center cursor-pointer"
+            className="w-full px-3 py-2 text-base text-text-dark bg-white border border-cream-300 rounded-lg min-h-[42px] flex items-center cursor-pointer"
           >
             {selectedSupplierName || 'Seleccionar proveedor...'}
           </div>
         </div>
         <div>
-          <label className="block mb-1.5 text-base font-medium text-slate-600">Nº Factura Proveedor</label>
-          <input name="invoiceNumber" value={formData.invoiceNumber} onChange={handleFieldChange} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg"/>
+          <label className={labelClasses}>Nº Factura Proveedor</label>
+          <input name="invoiceNumber" value={formData.invoiceNumber} onChange={handleFieldChange} className={formFieldClasses}/>
         </div>
         <div>
-          <label className="block mb-1.5 text-base font-medium text-slate-600">Fecha</label>
-          <input type="date" name="date" value={formData.date} onChange={handleFieldChange} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg"/>
+          <label className={labelClasses}>Fecha</label>
+          <input type="date" name="date" value={formData.date} onChange={handleFieldChange} className={formFieldClasses}/>
         </div>
       </div>
       
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-slate-700 mb-2">Ítems de la Compra</h3>
+        <h3 className="text-lg font-semibold text-text-medium mb-2">Ítems de la Compra</h3>
         <PurchaseItemsTable 
             items={formData.items}
             onUpdate={handleItemUpdate}
@@ -111,41 +116,42 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onSave, onCancel }) 
         />
         <button 
             onClick={() => setProductPickerOpen(true)} 
-            className="mt-4 bg-green-500 text-white font-semibold text-base py-2 px-4 rounded-lg shadow-sm hover:bg-green-600"
+            className="btn btn-green mt-4"
         >
+            <PlusIcon className="mr-2"/>
             Agregar Producto
         </button>
       </div>
 
       <div className="flex justify-between items-start gap-4">
         <div className="flex-grow">
-            <label className="block mb-1.5 text-base font-medium text-slate-600">Notas</label>
-            <textarea name="notes" value={formData.notes} onChange={handleFieldChange} rows={3} className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg"></textarea>
+            <label className={labelClasses}>Notas</label>
+            <textarea name="notes" value={formData.notes} onChange={handleFieldChange} rows={3} className={formFieldClasses}></textarea>
         </div>
-        <div className="w-full max-w-sm bg-slate-50 p-4 rounded-lg">
-            <div className="flex justify-between text-xl font-bold text-slate-900">
+        <div className="w-full max-w-sm bg-cream-100 p-4 rounded-lg">
+            <div className="flex justify-between text-xl font-bold text-text-dark">
                 <span>Total Factura</span>
                 <span>{formatARS(total)}</span>
             </div>
         </div>
       </div>
 
-      {error && <p className="text-red-600 text-center my-4">{error}</p>}
+      {error && <p className="text-pastel-red-600 text-center my-4">{error}</p>}
 
-      <div className="flex justify-end gap-4 border-t border-slate-200 pt-6 mt-6">
-        <button onClick={onCancel} className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100">
+      <div className="flex justify-end gap-4 border-t border-cream-200 pt-6 mt-6">
+        <button onClick={onCancel} className="btn btn-secondary">
           Cancelar
         </button>
-        <button onClick={handleSubmit} disabled={isSaving} className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 disabled:opacity-50">
+        <button onClick={handleSubmit} disabled={isSaving} className="btn btn-primary">
           {isSaving ? 'Guardando...' : 'Guardar Factura'}
         </button>
       </div>
       
-      <Modal isOpen={isSupplierPickerOpen} onClose={() => setSupplierPickerOpen(false)} title="Seleccionar Proveedor">
+      <Modal isOpen={isSupplierPickerOpen} onClose={() => setSupplierPickerOpen(false)} title="Seleccionar Proveedor" size="lg">
           <SupplierPicker onSelect={handleSupplierSelect} />
       </Modal>
 
-      <Modal isOpen={isProductPickerOpen} onClose={() => setProductPickerOpen(false)} title="Agregar Producto">
+      <Modal isOpen={isProductPickerOpen} onClose={() => setProductPickerOpen(false)} title="Agregar Producto" size="2xl">
           <ProductPicker onSelectProduct={handleProductSelect} allowZeroStock={true} />
       </Modal>
     </div>

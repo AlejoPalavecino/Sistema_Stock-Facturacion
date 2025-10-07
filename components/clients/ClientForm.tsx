@@ -69,8 +69,8 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
     }
   };
 
-  const formFieldClasses = "block w-full px-3 py-2.5 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-shadow";
-  const labelClasses = "block mb-1.5 text-base font-medium text-slate-700";
+  const formFieldClasses = "block w-full px-3 py-2.5 text-base text-text-dark bg-white border border-cream-300 rounded-lg placeholder-text-light focus:outline-none focus:ring-1 focus:ring-pastel-blue-500 focus:border-pastel-blue-500 transition-shadow";
+  const labelClasses = "block mb-1.5 text-base font-medium text-text-medium";
 
   return (
       <form onSubmit={handleSubmit} noValidate>
@@ -79,7 +79,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
           <div className="lg:col-span-2 space-y-8">
             {/* Section 1: Main Information */}
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-6 w-full">
+              <legend className="text-xl font-semibold text-text-dark border-b border-cream-200 pb-2 mb-6 w-full">
                 Información Principal
               </legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
@@ -91,7 +91,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
                     </div>
                     <input type="text" id="name" name="name" className={`${formFieldClasses} pl-10`} value={formData.name} onChange={handleChange} required placeholder="Ej: Juan Pérez" />
                   </div>
-                  {errors.name && <p role="alert" className="text-red-600 text-sm mt-1.5">{errors.name}</p>}
+                  {errors.name && <p role="alert" className="text-pastel-red-600 text-sm mt-1.5">{errors.name}</p>}
                 </div>
                 
                 <div>
@@ -104,7 +104,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
                 <div>
                   <label htmlFor="docNumber" className={labelClasses}>Nº Documento</label>
                   <input type="text" id="docNumber" name="docNumber" className={formFieldClasses} value={formData.docNumber} onChange={handleDocChange} placeholder="Solo números" />
-                  {errors.docNumber && <p role="alert" className="text-red-600 text-sm mt-1.5">{errors.docNumber}</p>}
+                  {errors.docNumber && <p role="alert" className="text-pastel-red-600 text-sm mt-1.5">{errors.docNumber}</p>}
                 </div>
 
                 <div className="sm:col-span-2">
@@ -118,7 +118,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
             
             {/* Section 2: Contact Information */}
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-6 w-full">
+              <legend className="text-xl font-semibold text-text-dark border-b border-cream-200 pb-2 mb-6 w-full">
                 Datos de Contacto
               </legend>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
@@ -130,7 +130,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
                     </div>
                     <input type="email" id="email" name="email" className={`${formFieldClasses} pl-10`} value={formData.email} onChange={handleChange} placeholder="ejemplo@correo.com" />
                   </div>
-                  {errors.email && <p role="alert" className="text-red-600 text-sm mt-1.5">{errors.email}</p>}
+                  {errors.email && <p role="alert" className="text-pastel-red-600 text-sm mt-1.5">{errors.email}</p>}
                 </div>
                 
                 <div>
@@ -159,7 +159,7 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
           {/* Sidebar Column */}
           <div className="lg:col-span-1">
             <fieldset>
-              <legend className="text-xl font-semibold text-slate-900 border-b border-slate-200 pb-2 mb-6 w-full">
+              <legend className="text-xl font-semibold text-text-dark border-b border-cream-200 pb-2 mb-6 w-full">
                 Información Adicional
               </legend>
               <div className="space-y-5">
@@ -169,8 +169,8 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
                 </div>
                 
                 <div>
-                  <label className="flex items-center text-base font-medium text-slate-700 cursor-pointer p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100">
-                    <input type="checkbox" name="active" className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" checked={formData.active} onChange={handleChange} />
+                  <label className="flex items-center text-base font-medium text-text-medium cursor-pointer p-3 bg-cream-100 border border-cream-200 rounded-lg hover:bg-cream-200">
+                    <input type="checkbox" name="active" className="h-4 w-4 rounded border-cream-300 text-pastel-blue-600 focus:ring-pastel-blue-500" checked={formData.active} onChange={handleChange} />
                     <span className="ml-3">Cliente Activo</span>
                   </label>
                 </div>
@@ -180,11 +180,11 @@ export const ClientForm: React.FC<ClientFormProps> = memo(({ clientToEdit, onSav
         </div>
         
         {/* Action Buttons */}
-        <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-end gap-4">
-          <button type="button" onClick={onCancel} className="text-base font-semibold text-slate-700 py-2.5 px-5 rounded-lg hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 transition-colors">
+        <div className="mt-8 pt-6 border-t border-cream-200 flex items-center justify-end gap-4">
+          <button type="button" onClick={onCancel} className="btn btn-secondary">
             Cancelar
           </button>
-          <button type="submit" className="bg-blue-600 text-white font-semibold text-base py-2.5 px-5 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 ease-in-out">
+          <button type="submit" className="btn btn-primary">
             Guardar Cliente
           </button>
         </div>

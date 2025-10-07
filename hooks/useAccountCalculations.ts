@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { Client, ClientWithDebt, Invoice, Payment, AccountAdjustment, Supplier, SupplierWithDebt, Purchase, SupplierPayment } from '../types';
 import { type ClientHistoryItem } from '../components/clients/ClientHistoryTable.tsx';
@@ -94,10 +95,7 @@ export function useClientDetailCalculations(
         const history: ClientHistoryItem[] = [...invoiceHistory, ...paymentHistory, ...adjustmentHistory]
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-        // Recalculate amounts to be positive for display, but keep original for calculation logic
-        const displayHistory = history.map(h => ({...h, amountARS: Math.abs(h.amountARS || 0)}));
-
-        return { debt, history: displayHistory };
+        return { debt, history };
     }, [invoices, payments, adjustments]);
 }
 

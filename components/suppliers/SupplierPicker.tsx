@@ -48,25 +48,25 @@ export const SupplierPicker: React.FC<SupplierPickerProps> = ({ onSelect }) => {
         placeholder="Buscar proveedor por razón social o CUIT..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="block w-full px-3 py-2 text-base text-slate-900 bg-white border border-slate-300 rounded-lg placeholder-slate-600 focus:ring-blue-500 focus:border-blue-500 mb-4"
+        className="search-input block w-full mb-4"
       />
       
-      <div className="max-h-60 overflow-y-auto border border-slate-200 rounded-lg mb-4">
+      <div className="max-h-60 overflow-y-auto border border-cream-200 rounded-lg mb-4">
         {loading ? (
-            <p className="p-4 text-center text-slate-500">Cargando proveedores...</p>
+            <p className="p-4 text-center text-text-medium">Cargando proveedores...</p>
         ) : (
-            <ul className="divide-y divide-slate-200">
+            <ul className="divide-y divide-cream-200">
                 {filteredSuppliers.length > 0 ? filteredSuppliers.map(supplier => (
                     <li 
                       key={supplier.id} 
                       onClick={() => onSelect(supplier)}
-                      className="p-3 cursor-pointer hover:bg-blue-50"
+                      className="p-3 cursor-pointer hover:bg-cream-50"
                     >
-                      <p className="font-medium text-slate-800">{supplier.businessName}</p>
-                      <p className="text-xs text-slate-500">CUIT: {supplier.cuit}</p>
+                      <p className="font-medium text-text-dark">{supplier.businessName}</p>
+                      <p className="text-xs text-text-medium">CUIT: {supplier.cuit}</p>
                     </li>
                 )) : (
-                    <li className="p-4 text-center text-slate-500">No se encontraron proveedores.</li>
+                    <li className="p-4 text-center text-text-medium">No se encontraron proveedores.</li>
                 )}
             </ul>
         )}
